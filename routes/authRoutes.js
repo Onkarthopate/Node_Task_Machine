@@ -10,6 +10,6 @@ router.post("/loginCandidate",authController.loginCandidate);
 
 router.post("/forgetPassword", AuthTokenMiddleware ,authController.forgetPassword);
 
-// router.post("/resetPassword", AuthTokenMiddleware ,authController.resetPassword);
+router.post("/resetPassword", AuthTokenMiddleware ,authController.resetPassword);
 
 export default router;

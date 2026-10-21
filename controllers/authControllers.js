@@ -98,14 +98,15 @@ export const loginCandidate = ErrorHandler(async (req, res, next) => {
 
 })
 
+
 export const forgetPassword = ErrorHandler(async (req, res, next) => {
-    const { email } = req.body;
+    const email = req.body;
 
     if (!email) {
         return res.status(400).json({
             success: false,
-            message: "Email is requied"
-        })
+            message: "Email is required",
+        });
     }
 
     const user = await User.findOne({ email });
@@ -113,8 +114,8 @@ export const forgetPassword = ErrorHandler(async (req, res, next) => {
     if (!user) {
         return res.status(404).json({
             success: false,
-            message: "User not exist"
-        })
+            message: "User does not exist",
+        });
     }
 
     const transporter = nodemailer.createTransport({
@@ -122,49 +123,67 @@ export const forgetPassword = ErrorHandler(async (req, res, next) => {
         auth: {
             user: process.env.EMAIL,
             pass: process.env.PASS,
-        }
+        },
     });
 
-    const randomOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    const randomOtp = Math.floor(
+        100000 + Math.random() * 900000
+    ).toString();
 
     const hashOtp = await bcrypt.hash(randomOtp, 10);
 
     const expireTime = new Date(Date.now() + 10 * 60 * 1000);
 
+    await otpModal.deleteMany({ email });
+
     await otpModal.create({
-        email: email,
+        email,
         otp: hashOtp,
         expiresAt: expireTime,
     });
 
-    await transporter.sendMail({
-        from: `"Support" <${process.env.EMAIL}>`,
-        to: email,
-        subject: 'Password Reset OTP',
-        html: `
-      <div style="font-family: Arial, sans-serif; padding: 20px;">
-        <h2>Password Reset Request</h2>
-        <p>Your OTP code to reset your password is:</p>
-        <h1 style="color: #4CAF50; letter-spacing: 2px;">${randomOtp}</h1>
-        <p>This code is valid for 10 minutes. If you did not request a password reset, please ignore this email.</p>
-      </div>
-    `
-    });
+    try {
+        await transporter.sendMail({
+            from: `"Support" <${process.env.EMAIL}>`,
+            to: email,
+            subject: "Password Reset OTP",
+            html: `
+                <div style="font-family: Arial, sans-serif; padding: 20px;">
+                    <h2>Password Reset Request</h2>
+                    <p>Your OTP to reset your password is:</p>
+                    <h1 style="color: #4CAF50; letter-spacing: 2px;">
+                        ${randomOtp}
+                    </h1>
+                    <p>This OTP is valid for 10 minutes.</p>
+                    <p>If you did not request this, ignore this email.</p>
+                </div>
+            `,
+        });
+    } catch (error) {
+        await otpModal.deleteMany({ email });
+
+        console.error("OTP email failed:", error.message);
+
+        return res.status(500).json({
+            success: false,
+            message: "Unable to send OTP. Please try again.",
+        });
+    }
 
     return res.status(200).json({
         success: true,
         message: "OTP sent successfully to your email",
     });
+});
 
-})
 
 export const resetPassword = ErrorHandler(async (req, res, next) => {
-    const { email, otp, newPass, confirmPass } = req.body;
+    const { email , otp, newPass, confirmPass } = req.body;
 
     if (!email || !otp) {
         return res.status(400).json({
             success: false,
-            message: "Email and Otp are required",
+            message: "Email and OTP are required",
         });
     }
 
@@ -177,12 +196,12 @@ export const resetPassword = ErrorHandler(async (req, res, next) => {
 
     if (newPass !== confirmPass) {
         return res.status(400).json({
-            success: true,
-            message: "Password do not match",
+            success: false,
+            message: "Passwords do not match",
         });
     }
+
     const otpData = await otpModal.findOne({ email });
-    console.log(otpData);
 
     if (!otpData) {
         return res.status(400).json({
@@ -191,26 +210,17 @@ export const resetPassword = ErrorHandler(async (req, res, next) => {
         });
     }
 
-
-    const MatchOtp = await bcrypt.compare(otp, otpData.otp);
-
-    if (!MatchOtp) {
-        return res.status(404).json({
-            success: true,
-            message: "OTP not found. Please request a new OTP",
-        });
-    }
-
     if (otpData.expiresAt <= new Date()) {
-        await otpModal.deleteMany({ email });
-
         return res.status(400).json({
             success: false,
             message: "OTP has expired. Please request a new OTP",
         });
     }
 
-    const isOtpMatch = await bcrypt.compare(otp, otpData.otp);
+    const isOtpMatch = await bcrypt.compare(
+        String(otp),
+        otpData.otp
+    );
 
     if (!isOtpMatch) {
         return res.status(400).json({
@@ -229,15 +239,13 @@ export const resetPassword = ErrorHandler(async (req, res, next) => {
     }
 
     user.password = await bcrypt.hash(newPass, 10);
-
     await user.save();
-
-    await otpModal.deleteMany({ email });
 
     return res.status(200).json({
         success: true,
         message: "Password reset successfully",
     });
 });
+
 
 
