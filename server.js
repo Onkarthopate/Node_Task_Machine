@@ -1,7 +1,8 @@
 import express from "express";
 import dotenv from "dotenv";
 import connectDB from "./config/connectDB.js";
-import router from "./routes/authRoutes.js";
+import authrouter from "./routes/authRoutes.js";
+import jobrouter from "./routes/jobRoutes.js";
 
 const app = express();
 dotenv.config();
@@ -13,7 +14,8 @@ app.get("/", (req, res) => {
     res.send("Hello from server!")
 })
 
-app.use("/auth",router);
+app.use("/auth",authrouter);
+app.use("/",jobrouter);
 
 const RunServer = async () => {
     try {
