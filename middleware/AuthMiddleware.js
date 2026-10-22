@@ -9,7 +9,7 @@ export const AuthTokenMiddleware = ErrorHandler(async (req, res, next) => {
     if (!authToken || !authToken.includes('Bearer')) {
         return res.status(401).json({
             success: false,
-            message: "Unauthrized Access "
+            message: "Access denied , You are not allowed for this operation."
         })
     }
 
@@ -17,7 +17,7 @@ export const AuthTokenMiddleware = ErrorHandler(async (req, res, next) => {
     console.log(token);
 
     req.token = token;
-     next();
+    next();
 
 
 })

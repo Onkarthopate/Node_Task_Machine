@@ -4,9 +4,7 @@ import { AuthTokenMiddleware } from "../middleware/AuthMiddleware.js";
 
 const router = express.Router();
 
-router.get("/getAllJobs",jobControllers.getAllJobs);
-
-
+router.get("/getAllJobs", AuthTokenMiddleware , jobControllers.getAllJobs);
 router.post("/createJobs",AuthTokenMiddleware ,jobControllers.postJobsByRecruiter);
 
 

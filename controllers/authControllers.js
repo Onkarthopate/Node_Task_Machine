@@ -99,8 +99,9 @@ export const loginCandidate = ErrorHandler(async (req, res, next) => {
 })
 
 
+
 export const forgetPassword = ErrorHandler(async (req, res, next) => {
-    const email = req.body;
+    const { email } = req.body;    
 
     if (!email) {
         return res.status(400).json({
@@ -110,6 +111,8 @@ export const forgetPassword = ErrorHandler(async (req, res, next) => {
     }
 
     const user = await User.findOne({ email });
+    console.log(user);
+    
 
     if (!user) {
         return res.status(404).json({
@@ -177,8 +180,9 @@ export const forgetPassword = ErrorHandler(async (req, res, next) => {
 });
 
 
+
 export const resetPassword = ErrorHandler(async (req, res, next) => {
-    const { email , otp, newPass, confirmPass } = req.body;
+    const { email, otp, newPass, confirmPass } = req.body;
 
     if (!email || !otp) {
         return res.status(400).json({

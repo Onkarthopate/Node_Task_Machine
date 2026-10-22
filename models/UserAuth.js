@@ -3,12 +3,12 @@ import mongooose from "mongoose";
 const UserAuthModel = mongooose.Schema({
     username: {
         type: String,
-        require: [true, "username is required"],
+        required: [true, "username is required"],
         minlength: 2,
     },
     email: {
         type: String,
-        require: [true, "email is required"],
+        required: [true, "email is required"],
         minlength: 11,
         match: [
             /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
@@ -18,7 +18,7 @@ const UserAuthModel = mongooose.Schema({
     password: {
         type: String,
         select:false,
-        require: [true, "password is requied"],
+        required: [true, "password is required"],
         minlength: [8, "Password must be at least 8 characters long"],
     },
     role: {
@@ -27,7 +27,7 @@ const UserAuthModel = mongooose.Schema({
         default: "candidate",
     },
 }, {
-    timeStamp: true,
+    timestamps: true,
 },
 )
 
