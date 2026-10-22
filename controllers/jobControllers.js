@@ -16,23 +16,22 @@ export const postJobsByRecruiter = ErrorHandler(async (req, res, next) => {
     const { title, description, jobRole } = req.body;
 
     if (!title || !description || !jobRole) {
-        return res.status(400).json({
-            success: false,
-            message: "All field are requied"
-        })
+
+        const error = new Error("All field are requied");
+        error.statusCode = 400;
+        throw error;
     }
 
-    const jobData = await JobModel.findOne({ title :title.trim()});
+    const jobData = await JobModel.findOne({ title: title.trim() });
 
     if (jobData) {
-        return res.status(409).json({
-            success: false,
-            message: "Title of same name already exist",
-        })
+        const error = new Error("Title of same name already exist");
+        error.statusCode = 409;
+        throw error;
     }
 
     const JobDeatils = await JobModel.create({
-        title : title.trim(),
+        title: title.trim(),
         description,
         jobRole,
     })

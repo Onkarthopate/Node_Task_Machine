@@ -9,19 +9,23 @@ export const registerCandidate = ErrorHandler(async (req, res, next) => {
     const { username, email, password } = req.body;
 
     if (!username || !email || !password) {
-        return res.status(400).json({
-            success: false,
-            message: "All field are requied"
-        });
+        const error = new Error(
+            "username , email , password are required",
+        );
+
+        error.statusCode = 400;
+        throw error;
     };
 
     const isExistEmail = await User.findOne({ email });
 
     if (isExistEmail) {
-        return res.status(409).json({
-            success: false,
-            message: "Email already exist",
-        });
+        const error = new Error(
+            "Email already exist"
+        );
+
+        error.statusCode = 409;
+        throw error;
     }
 
     const hashPassword = await bcrypt.hash(password, 10);
@@ -51,29 +55,35 @@ export const loginCandidate = ErrorHandler(async (req, res, next) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-        return res.status(400).json({
-            success: false,
-            message: "Email and password are required",
-        })
+        const error = new Error(
+            "Email and password are required"
+        );
+
+        error.statusCode = 400;
+        throw error;
     }
 
     const user = await User.findOne({ email }).select("+password");
     console.log(user);
 
     if (!user) {
-        return res.status(404).json({
-            success: false,
-            message: "Invalid email or password",
-        })
+        const error = new Error(
+            "Invalid email or password"
+        );
+
+        error.statusCode = 401;
+        throw error;
     }
 
     const comparePass = await bcrypt.compare(password, user.password);
 
     if (!comparePass) {
-        return res.status(401).json({
-            success: false,
-            message: "Invalid email or password"
-        })
+        const error = new Error(
+            "Invalid email or password"
+        );
+
+        error.statusCode = 401;
+        throw error;
     }
 
     const token = jwt.sign(
@@ -82,7 +92,6 @@ export const loginCandidate = ErrorHandler(async (req, res, next) => {
         { expiresIn: process.env.JWT_EXPIRY_TIME }
     )
 
-    console.log(token);
 
     return res.status(200).json({
         success: true,
@@ -98,27 +107,29 @@ export const loginCandidate = ErrorHandler(async (req, res, next) => {
 
 })
 
-
-
 export const forgetPassword = ErrorHandler(async (req, res, next) => {
-    const { email } = req.body;    
+    const { email } = req.body;
 
     if (!email) {
-        return res.status(400).json({
-            success: false,
-            message: "Email is required",
-        });
+        const error = new Error(
+            "Email is required"
+        );
+
+        error.statusCode = 400;
+        throw error;
     }
 
     const user = await User.findOne({ email });
     console.log(user);
-    
+
 
     if (!user) {
-        return res.status(404).json({
-            success: false,
-            message: "User does not exist",
-        });
+        const error = new Error(
+            "Invalid User"
+        );
+
+        error.statusCode = 400;
+        throw error;
     }
 
     const transporter = nodemailer.createTransport({
@@ -162,15 +173,15 @@ export const forgetPassword = ErrorHandler(async (req, res, next) => {
                 </div>
             `,
         });
-    } catch (error) {
+    } catch {
         await otpModal.deleteMany({ email });
 
-        console.error("OTP email failed:", error.message);
+        const error = new Error(
+            "Unable to send OTP. Please try again."
+        );
 
-        return res.status(500).json({
-            success: false,
-            message: "Unable to send OTP. Please try again.",
-        });
+        error.statusCode = 500;
+        throw error;
     }
 
     return res.status(200).json({
@@ -185,40 +196,48 @@ export const resetPassword = ErrorHandler(async (req, res, next) => {
     const { email, otp, newPass, confirmPass } = req.body;
 
     if (!email || !otp) {
-        return res.status(400).json({
-            success: false,
-            message: "Email and OTP are required",
-        });
+
+        const error = new Error(
+            "Email and OTP are required"
+        );
+
+        error.statusCode = 400;
+        throw error;
     }
 
     if (!newPass || !confirmPass) {
-        return res.status(400).json({
-            success: false,
-            message: "New password and confirm password are required",
-        });
+
+        const error = new Error(
+            "New password and confirm password are required"
+        );
+
+        error.statusCode = 400;
+        throw error;
     }
 
     if (newPass !== confirmPass) {
-        return res.status(400).json({
-            success: false,
-            message: "Passwords do not match",
-        });
+        const error = new Error(
+            "Invalid password"
+        );
+
+        error.statusCode = 401;
+        throw error;
     }
 
     const otpData = await otpModal.findOne({ email });
 
     if (!otpData) {
-        return res.status(400).json({
-            success: false,
-            message: "OTP not found. Please request a new OTP",
-        });
+
+        const error = new Error("OTP not found. Please request a new OTP");
+        error.statusCode = 400;
+        throw error;
     }
 
     if (otpData.expiresAt <= new Date()) {
-        return res.status(400).json({
-            success: false,
-            message: "OTP has expired. Please request a new OTP",
-        });
+
+        const error = new Error("OTP has expired. Please request a new OTP");
+        error.statusCode = 400;
+        throw error;
     }
 
     const isOtpMatch = await bcrypt.compare(
@@ -227,19 +246,19 @@ export const resetPassword = ErrorHandler(async (req, res, next) => {
     );
 
     if (!isOtpMatch) {
-        return res.status(400).json({
-            success: false,
-            message: "Incorrect OTP. Please try again",
-        });
+
+        const error = new Error("Incorrect OTP. Please try again");
+        error.statusCode = 400;
+        throw error;
     }
 
     const user = await User.findOne({ email });
 
     if (!user) {
-        return res.status(404).json({
-            success: false,
-            message: "User does not exist",
-        });
+
+        const error = new Error("User does not exist");
+        error.statusCode = 404;
+        throw error;
     }
 
     user.password = await bcrypt.hash(newPass, 10);

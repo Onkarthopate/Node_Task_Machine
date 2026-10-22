@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import connectDB from "./config/connectDB.js";
 import authrouter from "./routes/authRoutes.js";
 import jobrouter from "./routes/jobRoutes.js";
+import {GlobalErrorMiddleware} from "./utils/GlobalErrorHandler.js"
 
 const app = express();
 dotenv.config();
@@ -14,8 +15,11 @@ app.get("/", (req, res) => {
     res.send("Hello from server!")
 })
 
-app.use("/auth",authrouter);
-app.use("/",jobrouter);
+app.use("/auth", authrouter);
+app.use("/", jobrouter);
+
+app.use(GlobalErrorMiddleware);
+
 
 const RunServer = async () => {
     try {

@@ -1,5 +1,5 @@
 import ErrorHandler from "../utils/ErrorHandler.js";
-
+import jwt from "jsonwebtoken";
 
 export const AuthTokenMiddleware = ErrorHandler(async (req, res, next) => {
     // const authToken = req.headers.authorization;
@@ -14,10 +14,17 @@ export const AuthTokenMiddleware = ErrorHandler(async (req, res, next) => {
     }
 
     const token = authToken.split(" ")[1];
+
     console.log(token);
 
-    req.token = token;
+    const decodeToken = jwt.verify(
+        token,
+        process.env.JWT_SECRET,
+    )
+
+    req.user = decodeToken;
+    console.log(req.user);
+        
+    // req.token = token;
     next();
-
-
 })
