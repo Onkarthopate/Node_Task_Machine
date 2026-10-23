@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import otpModal from "../models/otpValidate.js";
+import { emailValidation, passwordValidation } from "../utils/Validation.js";
 
 export const registerCandidate = ErrorHandler(async (req, res, next) => {
     const { username, email, password } = req.body;
@@ -17,7 +18,15 @@ export const registerCandidate = ErrorHandler(async (req, res, next) => {
         throw error;
     };
 
-    const isExistEmail = await User.findOne({ email });
+    if (!emailValidation(email)) {
+        const error = new Error("Please enter a valid email address");
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const formatEmail = email.trim().toLowerCase();
+
+    const isExistEmail = await User.findOne({ email: formatEmail });
 
     if (isExistEmail) {
         const error = new Error(
@@ -28,11 +37,20 @@ export const registerCandidate = ErrorHandler(async (req, res, next) => {
         throw error;
     }
 
+    if (!passwordValidation(password)) {
+        const error = new Error(
+            "Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character."
+        );
+
+        error.statusCode = 400;
+        throw error;
+    }
+
     const hashPassword = await bcrypt.hash(password, 10);
 
     const createUser = await User.create({
         username,
-        email,
+        email: formatEmail,
         password: hashPassword,
     });
 
@@ -63,7 +81,24 @@ export const loginCandidate = ErrorHandler(async (req, res, next) => {
         throw error;
     }
 
-    const user = await User.findOne({ email }).select("+password");
+    if (!emailValidation(email)) {
+        const error = new Error("Please enter a valid email address");
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const formatEmail = email.trim().toLowerCase();
+
+    if (!passwordValidation(password)) {
+        const error = new Error(
+            "Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character."
+        );
+
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const user = await User.findOne({ email: formatEmail }).select("+password");
     console.log(user);
 
     if (!user) {
@@ -119,7 +154,15 @@ export const forgetPassword = ErrorHandler(async (req, res, next) => {
         throw error;
     }
 
-    const user = await User.findOne({ email });
+    if (!emailValidation(email)) {
+        const error = new Error("Please enter a valid email address");
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const formatEmail = email.trim().toLowerCase();
+
+    const user = await User.findOne({ email: formatEmail });
     console.log(user);
 
 
@@ -205,6 +248,14 @@ export const resetPassword = ErrorHandler(async (req, res, next) => {
         throw error;
     }
 
+    if (!emailValidation(email)) {
+        const error = new Error("Please enter a valid email address");
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const formatEmail = email.trim().toLowerCase();
+
     if (!newPass || !confirmPass) {
 
         const error = new Error(
@@ -215,16 +266,25 @@ export const resetPassword = ErrorHandler(async (req, res, next) => {
         throw error;
     }
 
+    if (!passwordValidation(newPass)) {
+        const error = new Error(
+            "Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character."
+        );
+
+        error.statusCode = 400;
+        throw error;
+    }
+
     if (newPass !== confirmPass) {
         const error = new Error(
-            "Invalid password"
+            "New password and confirm password do not match"
         );
 
         error.statusCode = 401;
         throw error;
     }
 
-    const otpData = await otpModal.findOne({ email });
+    const otpData = await otpModal.findOne({ email: formatEmail });
 
     if (!otpData) {
 
@@ -252,7 +312,7 @@ export const resetPassword = ErrorHandler(async (req, res, next) => {
         throw error;
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: formatEmail });
 
     if (!user) {
 
