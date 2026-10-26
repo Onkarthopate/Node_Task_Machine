@@ -14,17 +14,21 @@ router.post("/forgetPassword" , authController.forgetPassword);
 
 router.post("/resetPassword" ,authController.resetPassword);
 
+// get all users and update delete by admin role == ...
+
+router.get("/getAllUsers", AuthTokenMiddleware , AllowedRole("ADMIN") ,authAdminController.getAllUsers);
+
+router.delete("/removeUser/:id", AuthTokenMiddleware , AllowedRole("ADMIN") ,authAdminController.removeUser);
+
+router.put("/updateUser/:id", AuthTokenMiddleware , AllowedRole("ADMIN") ,authAdminController.updateUser);
+
+
 router.post("/registerRecruiter", AuthTokenMiddleware , AllowedRole("ADMIN") ,authAdminController.registerRecruiter);
 
-router.get("/getAllRecruiter", AuthTokenMiddleware , AllowedRole("ADMIN") ,authAdminController.getAllRecruiter);
+router.post("/loginRecruiter", authController.loginUser);
 
-router.delete("/removeRecruiter/:id", AuthTokenMiddleware , AllowedRole("ADMIN") ,authAdminController.removeRecuriter);
-
-router.put("/updateRecruiter/:id", AuthTokenMiddleware , AllowedRole("ADMIN") ,authAdminController.updateRecuriter);
 
 router.post("/registerAdmin" ,authAdminController.registerAdmin);
-
-router.post("/loginRecruiter", authController.loginUser);
 
 router.post("/loginAdmin",authController.loginUser);
 

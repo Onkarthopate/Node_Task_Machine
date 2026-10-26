@@ -68,37 +68,47 @@ export const registerRecruiter = ErrorHandler(async (req, res, next) => {
     });
 });
 
-export const getAllRecruiter = ErrorHandler(async (req, res) => {
+export const getAllUsers = ErrorHandler(async (req, res) => {
+
+    const { role } = req.query;
+
     const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 10, 1), 100);
 
-    const offset = Math.max(Number.parseInt(req.query.offset, 10) || 0);
+    const offset = Math.max(Number.parseInt(req.query.offset, 10) || 0, 0);
 
-    const recruiter = await User.find({ role: "RECRUITER" })
+    if (!["CANDIDATE", "RECRUITER"].includes(role)) {
+        const error = new Error("Invalid role");
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const users = await User.find({ role })
+        .select("-password")
         .sort({ createdAt: -1, _id: -1 })
         .skip(offset)
         .limit(limit);
 
-    const totalcount = await User.countDocuments({ role: "RECRUITER" });
+    const totalcount = await User.countDocuments({ role });
     console.log(totalcount);
 
     return res.status(200).json({
         success: true,
-        message: "Recruiter Fetched successfully",
+        message: `${role} Fetched successfully`,
         limit: limit,
         offset: offset,
         totalcount: totalcount,
-        data: recruiter
+        data: users
     })
 
 });
 
-export const removeRecuriter = ErrorHandler(async (req, res) => {
+export const removeUser = ErrorHandler(async (req, res) => {
 
     const { id } = req.params;
     console.log(id);
 
     if (!id) {
-        const error = new Error("recruiter ID is required");
+        const error = new Error("user ID is required");
         error.statusCode = 400;
         throw error;
     }
@@ -108,24 +118,28 @@ export const removeRecuriter = ErrorHandler(async (req, res) => {
 
     return res.status(200).json({
         success: false,
-        message: "Recruiter Deleted Successfully!",
+        message: "user Deleted Successfully!",
     });
 });
 
-export const updateRecuriter = ErrorHandler(async (req, res) => {
+export const updateUser = ErrorHandler(async (req, res) => {
+    const { role } = req.query;
 
     const { id } = req.params;
     console.log(id);
     const { username, email } = req.body;
+    console.log(username);
+    console.log(email);
+
 
     if (!id) {
-        const error = new Error("recruiter ID is required");
+        const error = new Error("user ID is required");
         error.statusCode = 400;
         throw error;
     }
 
     if (!mongoose.isValidObjectId(id)) {
-        const error = new Error("recruiter ID Not exist");
+        const error = new Error("user ID Not exist");
         error.statusCode = 400;
         throw error;
     }
@@ -136,8 +150,18 @@ export const updateRecuriter = ErrorHandler(async (req, res) => {
         throw error;
     }
 
-    const recruiter = await User.findOneAndUpdate(
-        { _id: id, role: "RECRUITER" },
+
+
+    console.log("ID:", req.params.id);
+    console.log("Role:", req.query.role);
+
+    const existingUser = await User.findById(req.params.id);
+
+    console.log("Existing user:", existingUser);
+    console.log("Actual role:", existingUser?.role);
+
+    const user = await User.findOneAndUpdate(
+        { _id: id, role },
         { $set: { username, email } },
         {
             new: true,
@@ -145,16 +169,16 @@ export const updateRecuriter = ErrorHandler(async (req, res) => {
         }
     ).select("-password");
 
-    if (!recruiter) {
-        const error = new Error("Recruiter Not exist");
+    if (!user) {
+        const error = new Error("User Not exist");
         error.statusCode = 400;
         throw error;
     }
 
     return res.status(200).json({
         success: false,
-        message: "Recruiter Updated Successfully!",
-        user: recruiter,
+        message: `${role} Updated Successfully!`,
+        data: user,
     });
 });
 

@@ -233,8 +233,6 @@ export const forgetPassword = ErrorHandler(async (req, res, next) => {
     });
 });
 
-
-
 export const resetPassword = ErrorHandler(async (req, res, next) => {
     const { email, otp, newPass, confirmPass } = req.body;
 
