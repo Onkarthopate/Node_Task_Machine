@@ -6,7 +6,7 @@ import nodemailer from "nodemailer";
 import otpModal from "../models/otpValidate.js";
 import { emailValidation, passwordValidation } from "../utils/Validation.js";
 
-export const registerCandidate = ErrorHandler(async (req, res, next) => {
+export const registerUser = ErrorHandler(async (req, res, next) => {
     const { username, email, password } = req.body;
 
     if (!username || !email || !password) {
@@ -69,7 +69,7 @@ export const registerCandidate = ErrorHandler(async (req, res, next) => {
     });
 });
 
-export const loginCandidate = ErrorHandler(async (req, res, next) => {
+export const loginUser = ErrorHandler(async (req, res, next) => {
     const { email, password } = req.body;
 
     if (!email || !password) {

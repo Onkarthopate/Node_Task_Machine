@@ -13,7 +13,6 @@ export const AllowedRole = (...role) => {
             error.statusCode = 404;
             throw error
         }
-
         next();
     })
 }

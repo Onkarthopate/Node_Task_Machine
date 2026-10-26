@@ -3,16 +3,21 @@ import mongoose from "mongoose";
 const JobData = mongoose.Schema({
     title: {
         type: String,
-        require: true,
+        required: true,
         unique: true,
     },
     description: {
         type: String,
-        require: true,
+        required: true,
     },
     jobRole: {
         type: String,
-        require: true,
+        required: true,
+    },
+    recruiterId: {
+        type: mongoose.Schema.ObjectId,
+        ref: "UserTable",
+        required: [true, "Recruiter ID is required"],
     }
 }, {
     timeStamp: true

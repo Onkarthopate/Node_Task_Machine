@@ -2,20 +2,40 @@ import JobModel from "../models/jobModel.js";
 import ErrorHandler from "../utils/ErrorHandler.js";
 
 export const getAllJobs = ErrorHandler(async (req, res, next) => {
-    const jobs = await JobModel.find();
+
+    const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 10, 1), 100);
+
+    const offset = Math.max(Number.parseInt(req.query.offset, 10) || 0);
+
+
+    const jobs = await JobModel.find()
+        .sort({ createdAt: -1, _id: -1 })
+        .skip(offset)
+        .limit(limit);
+
+    console.log(jobs);
+
+
+    const totalJobs = await JobModel.countDocuments();
 
     return res.status(200).json({
         success: true,
-        totalJobs: jobs.length,
+        totalJobs: totalJobs,
+        limit,
+        offset,
         jobs,
     });
 });
 
-
 export const postJobsByRecruiter = ErrorHandler(async (req, res, next) => {
-    const { title, description, jobRole } = req.body;
 
-    if (!title || !description || !jobRole) {
+    console.log("Request Body:", req.body);
+
+    const { title, description, jobRole, recruiterId } = req.body;
+    console.log("Recruiter ID:", recruiterId);
+
+
+    if (!title || !description || !jobRole || !recruiterId) {
 
         const error = new Error("All field are requied");
         error.statusCode = 400;
@@ -34,6 +54,7 @@ export const postJobsByRecruiter = ErrorHandler(async (req, res, next) => {
         title: title.trim(),
         description,
         jobRole,
+        recruiterId: recruiterId
     })
 
     return res.status(201).json({
@@ -42,3 +63,26 @@ export const postJobsByRecruiter = ErrorHandler(async (req, res, next) => {
         JobData: JobDeatils,
     })
 });
+
+export const deleteJobByAdminOnly = ErrorHandler(async (req, res, next) => {
+    
+    const { id } = req.params;
+    console.log(id);
+    
+
+    if (!id) {
+        const error = new Error("Job ID is required");
+        error.statusCode = 400;
+        return error;
+    }
+
+    const removeJob = await JobModel.findByIdAndDelete(id);
+    console.log(removeJob);
+
+    return res.status(200).json({
+        success: false,
+        message: "Job Deleted Successfully!",
+    });
+})
+
+
