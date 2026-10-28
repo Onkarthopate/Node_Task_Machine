@@ -174,9 +174,9 @@ export const ApplyJobByCandidate = ErrorHandler(async (req, res, next) => {
         throw error;
     }
 
-    console.log("candidate",candidate);
-    console.log("recruiter",recruiter);
-    
+    console.log("candidate", candidate);
+    console.log("recruiter", recruiter);
+
 
     const emailTemplate = await Promise.allSettled([
         sendMail({
@@ -211,7 +211,7 @@ export const ApplyJobByCandidate = ErrorHandler(async (req, res, next) => {
 
     emailTemplate.map((res, index) => {
         console.log(res);
-        
+
         if (res.status === "rejected") {
             console.error(
                 `Application email ${index + 1} failed:`,
@@ -230,6 +230,47 @@ export const ApplyJobByCandidate = ErrorHandler(async (req, res, next) => {
             recruiter: emailTemplate[1].status,
         },
     });
+})
+
+export const getMyAppliedJobs = ErrorHandler(async (req, res) => {
+    const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 10, 1), 100);
+
+    const offset = Math.max(Number.parseInt(req.query.offset, 10) || 0);
+
+    const candidateId = req.user.id || req.user._id;
+    // console.log("candidateId : " , candidateId);
+
+    const myAppliedJob = await JobApplicationModel.find({ candidateId })
+        .sort({ AppliedAt: -1 })
+        .skip(offset)
+        .limit(limit)
+        ;
+
+    if (!myAppliedJob) {
+        const error = new Error("candidate not found with this ID");
+        error.statusCode = 400;
+        throw error;
+    }
+
+    console.log(myAppliedJob);
+
+    const jobIds = myAppliedJob.map(application => application.jobId);
+    console.log(jobIds);
+
+    const AllJobs = await JobModel.find({
+        _id: { $in: jobIds }
+    });
+
+    console.log(AllJobs);
+
+    return res.status(200).json({
+        success: true,
+        message: "All Jobs get sucessfully",
+        limit: limit,
+        offset: offset,
+        totalJobs: AllJobs.length,
+        AllJobs,
+    })
 })
 
 

@@ -14,4 +14,6 @@ router.post("/createJobs",AuthTokenMiddleware , AllowedRole("RECRUITER") ,jobCon
 // apply job by candidate
 router.post("/applyJob",AuthTokenMiddleware , AllowedRole("CANDIDATE"),jobControllers.ApplyJobByCandidate)
 
+router.get("/getMyAppliedJob",AuthTokenMiddleware , AllowedRole("CANDIDATE"),jobControllers.getMyAppliedJobs)
+
 export default router;
