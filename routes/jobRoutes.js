@@ -16,4 +16,8 @@ router.post("/applyJob",AuthTokenMiddleware , AllowedRole("CANDIDATE"),jobContro
 
 router.get("/getMyAppliedJob",AuthTokenMiddleware , AllowedRole("CANDIDATE"),jobControllers.getMyAppliedJobs)
 
+// candidate apply job admin want to know 
+router.get("/getJobsByCandidate",AuthTokenMiddleware , AllowedRole("ADMIN"),jobControllers.getJobsByCandidate)
+
+
 export default router;
