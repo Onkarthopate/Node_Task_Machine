@@ -1,4 +1,5 @@
-const { default: mongoose } = require("mongoose");
+import mongoose from "mongoose";
+
 
 const JobApplication = mongoose.Schema({
         candidateId : {
@@ -6,14 +7,14 @@ const JobApplication = mongoose.Schema({
             ref : "UserTable",
             required : [true , "Candidate ID is required"],
         },
-        JobId : {
+        jobId : {
             type : mongoose.Schema.Types.ObjectId,
             ref : "JobTable",
             required : [true , "Job ID is required"],
         },
         Status : {
             type:String , 
-            enum : ["APPLIED", "ShHORTLISTED" , "REJECTED"],
+            enum : ["APPLIED", "SHORTLISTED" , "REJECTED"],
             default : "APPLIED",
         },
         AppliedAt : {

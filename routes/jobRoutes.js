@@ -5,10 +5,13 @@ import { AllowedRole } from "../middleware/RoleMiddleware.js";
 
 const router = express.Router();
 
-router.get("/getAllJobs", AuthTokenMiddleware , AllowedRole("CANDIDATE", "RECRUITER") , jobControllers.getAllJobs);
+router.get("/getAllJobs", AuthTokenMiddleware , AllowedRole("CANDIDATE", "RECRUITER","ADMIN") , jobControllers.getAllJobs);
 
 router.delete("/deleteJob/:id", AuthTokenMiddleware , AllowedRole("ADMIN") , jobControllers.deleteJobByAdminOnly);
 
 router.post("/createJobs",AuthTokenMiddleware , AllowedRole("RECRUITER") ,jobControllers.postJobsByRecruiter);
+
+// apply job by candidate
+router.post("/applyJob",AuthTokenMiddleware , AllowedRole("CANDIDATE"),jobControllers.ApplyJobByCandidate)
 
 export default router;

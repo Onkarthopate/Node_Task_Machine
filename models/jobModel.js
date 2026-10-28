@@ -20,7 +20,7 @@ const JobData = mongoose.Schema({
         required: [true, "Recruiter ID is required"],
     }
 }, {
-    timeStamp: true
+    timestamps: true
 }
 )
 
