@@ -31,15 +31,57 @@ export const getAllJobs = ErrorHandler(async (req, res, next) => {
     });
 });
 
+export const getAllJobsBySpecificRecruiter = ErrorHandler(async (req, res, next) => {
+    debugger;
+    const recruiterId = req.user.id || req.user._id;
+
+    console.log(recruiterId);
+
+    const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 10, 1), 100)
+
+    const offset = Math.max(Number.parseInt(req.query.offset, 10) || 0)
+
+    if (!recruiterId) {
+        const error = new Error("recruiterId is required");
+        error.statusCode = 400;
+
+        throw error;
+    }
+
+    const getJobByRecruiter = await JobModel.find({ recruiterId })
+        .sort({ createdAt: -1 })
+        .skip(offset)
+        .limit(limit);
+
+    // const recruiterIds = getJobByRecruiterIds.map(application => application.recruiterId);
+
+    // console.log(jobs);
+
+    // const jobs = await JobModel
+
+    return res.status(200).json({
+        success: true,
+        message: "job fetches successfully",
+        limit,
+        offset,
+        totalJobs: getJobByRecruiter.length,
+        getJobByRecruiter
+    })
+})
+
 export const postJobsByRecruiter = ErrorHandler(async (req, res, next) => {
 
     console.log("Request Body:", req.body);
 
-    const { title, description, jobRole, recruiterId } = req.body;
+    const recruiterId = req.user.id || req.user._id;
+
     console.log("Recruiter ID:", recruiterId);
 
+    const { title, description, jobRole } = req.body;
 
-    if (!title || !description || !jobRole || !recruiterId) {
+
+
+    if (!title || !description || !jobRole) {
 
         const error = new Error("All field are requied");
         error.statusCode = 400;
@@ -288,7 +330,7 @@ export const getJobsByCandidate = ErrorHandler(async (req, res) => {
         throw error;
     }
 
-    const candidateAppliedJob = await JobApplicationModel.find({ candidateId }).sort({createdAt : -1});
+    const candidateAppliedJob = await JobApplicationModel.find({ candidateId }).sort({ createdAt: -1 });
 
     console.log(candidateAppliedJob);
     console.log("------------------------------------------");
@@ -302,14 +344,18 @@ export const getJobsByCandidate = ErrorHandler(async (req, res) => {
     }).sort({ AppliedBy: -1 }).skip(offset).limit(limit);
 
     return res.status(200).json({
-        success : true,
-        message : "Job Fetched Successfully",
+        success: true,
+        message: "Job Fetched Successfully",
         limit,
         offset,
-        totalJobs : jobs.length,
+        totalJobs: jobs.length,
         jobs,
     })
 
+
+})
+
+export const getFilterdJobs = ErrorHandler(async (req, res) => {
 
 })
 
