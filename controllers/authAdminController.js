@@ -74,7 +74,7 @@ export const getAllUsers = ErrorHandler(async (req, res) => {
 
     const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 10, 1), 100);
 
-    const offset = Math.max(Number.parseInt(req.query.offset, 10) || 0, 0);
+    const offset = Math.max(Number.parseInt(req.query.offset, 10) || 0);
 
     if (!["CANDIDATE", "RECRUITER"].includes(role)) {
         const error = new Error("Invalid role");
@@ -113,8 +113,8 @@ export const removeUser = ErrorHandler(async (req, res) => {
         throw error;
     }
 
-    const removeRecruiter = await User.findByIdAndDelete(id);
-    console.log(removeRecruiter);
+    const removeUser = await User.findByIdAndDelete(id);
+    console.log(removeUser);
 
     return res.status(200).json({
         success: false,

@@ -27,5 +27,4 @@ router.get("/getFilterdJobs",AuthTokenMiddleware , AllowedRole("RECRUITER"),jobC
 
 
 
-
 export default router;

@@ -294,10 +294,10 @@ export const getMyAppliedJobs = ErrorHandler(async (req, res) => {
         throw error;
     }
 
-    console.log(myAppliedJob);
+    // console.log(myAppliedJob);
 
     const jobIds = myAppliedJob.map(application => application.jobId);
-    console.log(jobIds);
+    // console.log(jobIds);
 
     const AllJobs = await JobModel.find({
         _id: { $in: jobIds }
@@ -318,37 +318,66 @@ export const getMyAppliedJobs = ErrorHandler(async (req, res) => {
 export const getJobsByCandidate = ErrorHandler(async (req, res) => {
     const { candidateId } = req.body;
 
+    const candidateIds = Array.isArray(candidateId) ? candidateId : candidateId ? [candidateId] : [];
+
+    console.log(candidateIds);
+
     const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 10, 1), 100);
 
     const offset = Math.max(Number.parseInt(req.query.offset, 10) || 0);
 
+    const isValidIds = candidateIds.some(id => !mongoose.isValidObjectId(id));
+
     // console.log(candidateId);
 
-    if (!mongoose.isValidObjectId(candidateId)) {
-        const error = new Error("Candidate ID is required");
+    if (candidateIds.length === 0 || isValidIds) {
+        const error = new Error("Candidate ID(s) is required");
         error.statusCode = 400;
         throw error;
     }
 
-    const candidateAppliedJob = await JobApplicationModel.find({ candidateId }).sort({ createdAt: -1 });
+    const candidateAppliedJob = await JobApplicationModel.find({ candidateId: { $in: candidateIds } }).sort({ createdAt: -1 });
 
-    console.log(candidateAppliedJob);
+    console.log("Candidate Applications:", candidateAppliedJob);
     console.log("------------------------------------------");
 
 
-    const JobIds = candidateAppliedJob.map(application => application.jobId);
-    console.log(JobIds);
+    const JobIds = [...new Set(candidateAppliedJob.filter(application => application.jobId)
+        .map(application => application.jobId.toString()))];
+
+    console.log("Applied Job IDs:", JobIds);
+
+    if (JobIds.length === 0) {
+        return res.status(200).json({
+            success: true,
+            message: "No Jobs Found for the given candidate(s)",
+            limit,
+            offset,
+            totalJobs: 0,
+            jobs: [],
+        });
+    }
+
+    // const objectIds = JobIds.map(
+    //     id => new mongoose.Types.ObjectId(id)
+    // );
+
 
     const jobs = await JobModel.find({
         _id: { $in: JobIds }
-    }).sort({ AppliedBy: -1 }).skip(offset).limit(limit);
+    }).skip(offset).limit(limit);
+
+    console.log("Jobs Data", jobs);
+
+
+    const totalJobs = await JobModel.countDocuments({ _id: { $in: JobIds } })
 
     return res.status(200).json({
         success: true,
         message: "Job Fetched Successfully",
         limit,
         offset,
-        totalJobs: jobs.length,
+        totalJobs: totalJobs,
         jobs,
     })
 

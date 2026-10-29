@@ -15,7 +15,7 @@ export const AuthTokenMiddleware = ErrorHandler(async (req, res, next) => {
 
     const token = authToken.split(" ")[1];
 
-    console.log(token);
+    // console.log(token);
 
     const decodeToken = jwt.verify(
         token,
@@ -23,7 +23,7 @@ export const AuthTokenMiddleware = ErrorHandler(async (req, res, next) => {
     )
 
     req.user = decodeToken;
-    console.log(req.user);
+    // console.log(req.user);
         
     // req.token = token;
     next();
