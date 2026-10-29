@@ -39,5 +39,8 @@ router.post("/registerAdmin", authAdminController.registerAdmin);
 // export candidate recruiter by its role wise 
 router.get("/export", AuthTokenMiddleware, AllowedRole("ADMIN"), exportController.exportUsersByRole);
 
+// export all or specific candidate applied to job
+router.get("/exportCandidateAppliedJob", AuthTokenMiddleware, AllowedRole("ADMIN"), exportController.exportCandidateAppliedJob);
+
 
 export default router;
