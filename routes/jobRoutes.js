@@ -23,7 +23,7 @@ router.get("/getJobsByCandidate",AuthTokenMiddleware , AllowedRole("ADMIN"),jobC
 
 // recruiter want to know the candidate have applied job today and prevoisly like filter 
 
-router.get("/getFilterdJobs",AuthTokenMiddleware , AllowedRole("RECRUITER"),jobControllers.getFilterdJobs)
+router.get("/getJobApplyCandidateForRecruiter",AuthTokenMiddleware , AllowedRole("RECRUITER"),jobControllers.getJobApplyCandidateForRecruiter)
 
 
 

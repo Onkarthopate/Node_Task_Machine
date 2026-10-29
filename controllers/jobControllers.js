@@ -384,8 +384,51 @@ export const getJobsByCandidate = ErrorHandler(async (req, res) => {
 
 })
 
-export const getFilterdJobs = ErrorHandler(async (req, res) => {
+export const getJobApplyCandidateForRecruiter = ErrorHandler(async (req, res) => {
+    const recruiterId = req.user.id;
 
-})
+    const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 10, 1),100);
+
+    const offset = Math.max(Number.parseInt(req.query.offset, 10) || 0,0);
+
+    const recruiterJobs = await JobModel.find({recruiterId});
+
+    const jobIds = recruiterJobs.map(job => job._id);
+    console.log(jobIds);
+    
+
+    if (jobIds.length === 0) {
+        return res.status(200).json({
+            success: true,
+            message: "No jobs posted by this recruiter",
+            totalApplications: 0,
+            limit,
+            offset,
+            applicants: []
+        });
+    }
+
+    const totalApplications = await JobApplicationModel.countDocuments({
+        jobId: { $in: jobIds }
+    });
+
+    const applicants = await JobApplicationModel.find({
+        jobId: { $in: jobIds }
+    })
+        .populate("candidateId", "username email")
+        .populate("jobId", "title description jobRole")
+        .sort({ createdAt: -1, _id: -1 })
+        .skip(offset)
+        .limit(limit);
+
+    return res.status(200).json({
+        success: true,
+        message: "Application fetched successfully",
+        totalApplications,
+        limit,
+        offset,
+        applicants
+    });
+});
 
 
