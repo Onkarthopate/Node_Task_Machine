@@ -4,6 +4,7 @@ import JobModel from "../models/jobModel.js";
 import UserModal from "../models/UserAuth.js";
 import ErrorHandler from "../utils/ErrorHandler.js";
 import { sendMail } from "../utils/sendMail.js";
+import User from "../models/UserAuth.js";
 
 export const getAllJobs = ErrorHandler(async (req, res, next) => {
 
@@ -171,7 +172,7 @@ export const ApplyJobByCandidate = ErrorHandler(async (req, res, next) => {
     });
 
     if (isExistApplication) {
-        const error = new Error("Candidate applied for this job");
+        const error = new Error("Candidate already applied for this job");
         error.statusCode = 400;
         throw error;
     }
@@ -336,11 +337,18 @@ export const getJobsByCandidate = ErrorHandler(async (req, res) => {
         throw error;
     }
 
-    const candidateAppliedJob = await JobApplicationModel.find({ candidateId: { $in: candidateIds } }).sort({ createdAt: -1 });
+
+    const User = await UserModal.find({
+        _id: { $in: candidateIds }
+    }).populate("username email");
+
+    console.log(User);
+
+
+    const candidateAppliedJob = await JobApplicationModel.find({ candidateId: { $in: candidateIds } }).sort({ createdAt: -1 }).populate("candidateId" , "username email");
 
     console.log("Candidate Applications:", candidateAppliedJob);
     console.log("------------------------------------------");
-
 
     const JobIds = [...new Set(candidateAppliedJob.filter(application => application.jobId)
         .map(application => application.jobId.toString()))];
@@ -387,15 +395,15 @@ export const getJobsByCandidate = ErrorHandler(async (req, res) => {
 export const getJobApplyCandidateForRecruiter = ErrorHandler(async (req, res) => {
     const recruiterId = req.user.id;
 
-    const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 10, 1),100);
+    const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 10, 1), 100);
 
-    const offset = Math.max(Number.parseInt(req.query.offset, 10) || 0,0);
+    const offset = Math.max(Number.parseInt(req.query.offset, 10) || 0, 0);
 
-    const recruiterJobs = await JobModel.find({recruiterId});
+    const recruiterJobs = await JobModel.find({ recruiterId });
 
     const jobIds = recruiterJobs.map(job => job._id);
     console.log(jobIds);
-    
+
 
     if (jobIds.length === 0) {
         return res.status(200).json({

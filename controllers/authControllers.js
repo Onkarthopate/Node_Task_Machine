@@ -1,10 +1,10 @@
 import User from "../models/UserAuth.js";
 import ErrorHandler from "../utils/ErrorHandler.js";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import otpModal from "../models/otpValidate.js";
 import { emailValidation, passwordValidation } from "../utils/Validation.js";
+import { genrateJWT } from "../utils/jwtTokenGenrate.js";
 
 export const registerUser = ErrorHandler(async (req, res, next) => {
     const { username, email, password } = req.body;
@@ -54,8 +54,7 @@ export const registerUser = ErrorHandler(async (req, res, next) => {
         password: hashPassword,
     });
 
-    console.log(createUser);
-
+    // console.log(createUser);
 
     return res.status(201).json({
         success: true,
@@ -121,11 +120,16 @@ export const loginUser = ErrorHandler(async (req, res, next) => {
         throw error;
     }
 
-    const token = jwt.sign(
-        { id: user._id, role: user.role },
-        process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRY_TIME }
-    )
+    // const token = jwt.sign(
+    //     { id: user._id, role: user.role },
+    //     process.env.JWT_SECRET,
+    //     { expiresIn: process.env.JWT_EXPIRY_TIME }
+    // )
+
+    const token = genrateJWT(user._id , user.role);
+
+    console.log(token);
+    
 
 
     return res.status(200).json({
