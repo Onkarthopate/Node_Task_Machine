@@ -217,8 +217,8 @@ export const ApplyJobByCandidate = ErrorHandler(async (req, res, next) => {
         throw error;
     }
 
-    console.log("candidate", candidate);
-    console.log("recruiter", recruiter);
+    // console.log("candidate", candidate);
+    // console.log("recruiter", recruiter);
 
 
     const emailTemplate = await Promise.allSettled([
@@ -253,7 +253,7 @@ export const ApplyJobByCandidate = ErrorHandler(async (req, res, next) => {
     ]);
 
     emailTemplate.map((res, index) => {
-        console.log(res);
+        // console.log(res);
 
         if (res.status === "rejected") {
             console.error(
@@ -345,7 +345,7 @@ export const getJobsByCandidate = ErrorHandler(async (req, res) => {
     console.log(User);
 
 
-    const candidateAppliedJob = await JobApplicationModel.find({ candidateId: { $in: candidateIds } }).sort({ createdAt: -1 }).populate("candidateId" , "username email");
+    const candidateAppliedJob = await JobApplicationModel.find({ candidateId: { $in: candidateIds } }).sort({ createdAt: -1 }).populate("candidateId", "username email");
 
     console.log("Candidate Applications:", candidateAppliedJob);
     console.log("------------------------------------------");
@@ -392,18 +392,29 @@ export const getJobsByCandidate = ErrorHandler(async (req, res) => {
 
 })
 
+
 export const getJobApplyCandidateForRecruiter = ErrorHandler(async (req, res) => {
+
     const recruiterId = req.user.id;
 
-    const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 10, 1), 100);
+    const limit = Math.min(
+        Math.max(Number.parseInt(req.query.limit, 10) || 10, 1),
+        100
+    );
 
-    const offset = Math.max(Number.parseInt(req.query.offset, 10) || 0, 0);
+    const offset = Math.max(
+        Number.parseInt(req.query.offset, 10) || 0,
+        0
+    );
 
-    const recruiterJobs = await JobModel.find({ recruiterId });
+    const dataFilter = req.query.datafilter || "all";
+
+    // Find jobs posted by this recruiter
+    const recruiterJobs = await JobModel.find({ recruiterId })
+        .select("_id")
+        .lean();
 
     const jobIds = recruiterJobs.map(job => job._id);
-    console.log(jobIds);
-
 
     if (jobIds.length === 0) {
         return res.status(200).json({
@@ -416,13 +427,66 @@ export const getJobApplyCandidateForRecruiter = ErrorHandler(async (req, res) =>
         });
     }
 
-    const totalApplications = await JobApplicationModel.countDocuments({
-        jobId: { $in: jobIds }
-    });
+    // Date filter
+    const now = new Date();
 
-    const applicants = await JobApplicationModel.find({
+    let startDate;
+    let endDate = now;
+
+    switch (dataFilter) {
+
+        case "today":
+            startDate = new Date(now);
+            startDate.setHours(0, 0, 0, 0);
+            break;
+
+        case "yesterday":
+            startDate = new Date(now);
+            startDate.setDate(startDate.getDate() - 1);
+            startDate.setHours(0, 0, 0, 0);
+
+            endDate = new Date(now);
+            endDate.setHours(0, 0, 0, 0);
+            break;
+
+        case "last7days":
+            startDate = new Date(now);
+            startDate.setDate(startDate.getDate() - 7);
+            break;
+
+        case "last30days":
+            startDate = new Date(now);
+            startDate.setDate(startDate.getDate() - 30);
+            break;
+
+        case "all":
+            break;
+
+        default: {
+            const error = new Error("Invalid date filter");
+            error.statusCode = 400;
+            throw error;
+        }
+    }
+
+    // MongoDB query
+    const query = {
         jobId: { $in: jobIds }
-    })
+    };
+
+    if (startDate) {
+        query.createdAt = {
+            $gte: startDate,
+            $lt: endDate
+        };
+    }
+
+    // Total count without pagination
+    const totalApplications =
+        await JobApplicationModel.countDocuments(query);
+
+    // Fetch applicants with DB pagination
+    const applicants = await JobApplicationModel.find(query)
         .populate("candidateId", "username email")
         .populate("jobId", "title description jobRole")
         .sort({ createdAt: -1, _id: -1 })
@@ -431,12 +495,15 @@ export const getJobApplyCandidateForRecruiter = ErrorHandler(async (req, res) =>
 
     return res.status(200).json({
         success: true,
-        message: "Application fetched successfully",
+        message: "Applications fetched successfully",
         totalApplications,
+        dataFilter,
         limit,
         offset,
         applicants
     });
+
 });
+
 
 

@@ -7,7 +7,7 @@ export const AuthTokenMiddleware = ErrorHandler(async (req, res, next) => {
     // console.log(authToken);
 
     if (!authToken || !authToken.includes('Bearer')) {
-        return res.status(401).json({
+        return res.status(404).json({
             success: false,
             message: "Access denied , You are not allowed for this operation."
         })

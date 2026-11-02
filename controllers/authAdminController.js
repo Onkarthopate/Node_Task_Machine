@@ -127,10 +127,8 @@ export const updateUser = ErrorHandler(async (req, res) => {
 
     const { id } = req.params;
     console.log(id);
-    const { username, email } = req.body;
-    console.log(username);
-    console.log(email);
 
+    const { username, email } = req.body;
 
     if (!id) {
         const error = new Error("user ID is required");
@@ -152,13 +150,13 @@ export const updateUser = ErrorHandler(async (req, res) => {
 
 
 
-    console.log("ID:", req.params.id);
-    console.log("Role:", req.query.role);
+    // console.log("ID:", req.params.id);
+    // console.log("Role:", req.query.role);
 
-    const existingUser = await User.findById(req.params.id);
+    // const existingUser = await User.findById(req.params.id);
 
-    console.log("Existing user:", existingUser);
-    console.log("Actual role:", existingUser?.role);
+    // console.log("Existing user:", existingUser);
+    // console.log("Actual role:", existingUser?.role);
 
     const user = await User.findOneAndUpdate(
         { _id: id, role },

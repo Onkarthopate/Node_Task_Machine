@@ -1,10 +1,10 @@
 import User from "../models/UserAuth.js";
 import ErrorHandler from "../utils/ErrorHandler.js";
 import bcrypt from "bcrypt";
-import nodemailer from "nodemailer";
 import otpModal from "../models/otpValidate.js";
-import { emailValidation, passwordValidation } from "../utils/Validation.js";
+import { emailValidation, expireTime, passwordValidation, randomOtp } from "../utils/Validation.js";
 import { genrateJWT } from "../utils/jwtTokenGenrate.js";
+import { getTransporter } from "../utils/sendMail.js";
 
 export const registerUser = ErrorHandler(async (req, res, next) => {
     const { username, email, password } = req.body;
@@ -179,33 +179,33 @@ export const forgetPassword = ErrorHandler(async (req, res, next) => {
         throw error;
     }
 
-    const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-            user: process.env.EMAIL,
-            pass: process.env.PASS,
-        },
-    });
+    // const transporter = nodemailer.createTransport({
+    //     service: "gmail",
+    //     auth: {
+    //         user: process.env.EMAIL,
+    //         pass: process.env.PASS,
+    //     },
+    // });
 
-    const randomOtp = Math.floor(
-        100000 + Math.random() * 900000
-    ).toString();
+     const transporter = getTransporter();
 
-    const hashOtp = await bcrypt.hash(randomOtp, 10);
+    const randomOtps = randomOtp;
 
-    const expireTime = new Date(Date.now() + 10 * 60 * 1000);
+    const hashOtp = await bcrypt.hash(randomOtps, 10);
+
+    const expireTimes = expireTime;
 
     await otpModal.deleteMany({ email });
 
     await otpModal.create({
         email,
         otp: hashOtp,
-        expiresAt: expireTime,
+        expiresAt: expireTimes,
     });
 
     try {
         await transporter.sendMail({
-            from: `"Support" <${process.env.EMAIL}>`,
+            from: `<${process.env.EMAIL}>`,
             to: email,
             subject: "Password Reset OTP",
             html: `
@@ -213,7 +213,7 @@ export const forgetPassword = ErrorHandler(async (req, res, next) => {
                     <h2>Password Reset Request</h2>
                     <p>Your OTP to reset your password is:</p>
                     <h1 style="color: #4CAF50; letter-spacing: 2px;">
-                        ${randomOtp}
+                        ${randomOtps}
                     </h1>
                     <p>This OTP is valid for 10 minutes.</p>
                     <p>If you did not request this, ignore this email.</p>

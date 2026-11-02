@@ -13,3 +13,10 @@ export const emailValidation = (email) => {
 
     return emailRegex.test(email);
 };
+
+export const randomOtp = Math.floor(
+    100000 + Math.random() * 900000
+).toString();  
+
+
+export const expireTime = new Date(Date.now() + 10 * 60 * 1000); // 10 min
