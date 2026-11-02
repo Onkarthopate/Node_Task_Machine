@@ -392,6 +392,49 @@ export const getJobsByCandidate = ErrorHandler(async (req, res) => {
 
 })
 
+export const getAllCandidateApplyJob = ErrorHandler(async (req, res) => {
+    // const {id} = req.query.params;
+    const { id } = req.params;
+
+    const limit = Math.min(
+        Math.max(Number.parseInt(req.query.limit, 10) || 10, 1),
+        100
+    );
+
+    const offset = Math.max(
+        Number.parseInt(req.query.offset, 10) || 0,
+        0
+    );
+
+    if (!mongoose.isValidObjectId(id)) {
+        const error = new Error("Invalid Job Id");
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const candidateApplyJob = await JobApplicationModel.find({ jobId: id }).sort({ createdAt: -1 })
+        .skip(offset)
+        .limit(limit)
+        .populate("candidateId", "username email");;
+
+    console.log(candidateApplyJob);
+
+    const totalApplications = await JobApplicationModel.countDocuments({
+        jobId: id
+    });
+
+    return res.status(200).json({
+        success: true,
+        message: "Candidates fetched successfully",
+        limit,
+        offset,
+        totalApplications,
+        totalPages: Math.ceil(totalApplications / limit),
+        candidates: candidateApplyJob
+    });
+
+})
+
 
 export const getJobApplyCandidateForRecruiter = ErrorHandler(async (req, res) => {
 

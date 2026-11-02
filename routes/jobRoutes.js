@@ -21,6 +21,8 @@ router.get("/getMyAppliedJob",AuthTokenMiddleware , AllowedRole("CANDIDATE"),job
 // candidate apply job admin want to know 
 router.get("/getJobsByCandidate",AuthTokenMiddleware , AllowedRole("ADMIN"),jobControllers.getJobsByCandidate)
 
+router.get("/getAllCandidateApplyJob/:id",AuthTokenMiddleware , AllowedRole("ADMIN"),jobControllers.getAllCandidateApplyJob)
+
 // recruiter want to know the candidate have applied job today and prevoisly like filter 
 
 router.get("/getJobApplyCandidateForRecruiter",AuthTokenMiddleware , AllowedRole("RECRUITER"),jobControllers.getJobApplyCandidateForRecruiter)
