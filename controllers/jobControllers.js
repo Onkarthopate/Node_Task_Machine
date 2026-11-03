@@ -135,23 +135,20 @@ export const deleteJobByAdminOnly = ErrorHandler(async (req, res, next) => {
 
 export const ApplyJobByCandidate = ErrorHandler(async (req, res, next) => {
 
-    const { jobId } = req.body;
-    console.log("jobId", jobId);
-
-    console.log("mongoose.isValidObjectId(jobId)", mongoose.isValidObjectId(jobId));
-
-
-    if (!mongoose.isValidObjectId(jobId)) {
-        const error = new Error("Job Id is required");
-        error.statusCode = 400;
-        throw error;
-    }
-
     const candidateId = req.user.id || req.user._id;
     console.log(candidateId);
 
     if (!candidateId) {
         const error = new Error("Candidate Authentication required");
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const { jobId } = req.body;
+    console.log("jobId", jobId);
+
+    if (!mongoose.isValidObjectId(jobId)) {
+        const error = new Error("Job Id is required");
         error.statusCode = 400;
         throw error;
     }
@@ -336,7 +333,6 @@ export const getJobsByCandidate = ErrorHandler(async (req, res) => {
         error.statusCode = 400;
         throw error;
     }
-
 
     const User = await UserModal.find({
         _id: { $in: candidateIds }
