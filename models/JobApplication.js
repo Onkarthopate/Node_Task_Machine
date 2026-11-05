@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 
-
 const JobApplication = mongoose.Schema({
         candidateId : {
             type : mongoose.Schema.Types.ObjectId,

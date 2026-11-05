@@ -4,439 +4,136 @@ import JobModel from "../models/jobModel.js";
 import UserModal from "../models/UserAuth.js";
 import ErrorHandler from "../utils/ErrorHandler.js";
 import { sendMail } from "../utils/sendMail.js";
-import User from "../models/UserAuth.js";
+import { getPagination } from "../utils/getPagination.js";
+import { SuccessResponce } from "../utils/responseHandler.js";
+import * as jobService from "../services/jobService.js";
 
-export const getAllJobs = ErrorHandler(async (req, res, next) => {
+export const getAllJobs = ErrorHandler(async (req, res) => {
 
-    const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 10, 1), 100);
+    const { limit, offset } = getPagination(req.query);
 
-    const offset = Math.max(Number.parseInt(req.query.offset, 10) || 0);
-
-
-    const jobs = await JobModel.find()
-        .sort({ createdAt: -1, _id: -1 })
-        .skip(offset)
-        .limit(limit);
-
-    console.log(jobs);
-
-
-    const totalJobs = await JobModel.countDocuments();
-
-    return res.status(200).json({
-        success: true,
-        totalJobs: totalJobs,
-        limit,
-        offset,
-        jobs,
+    const { jobs, totalCount } = await jobService.getAllJobsService({
+        limit, offset
     });
+
+    return SuccessResponce(
+        res, 200, "Job fetched successfully", jobs,
+        {
+            limit, offset, totalCount
+        }
+    )
 });
 
-export const getAllJobsBySpecificRecruiter = ErrorHandler(async (req, res, next) => {
-    debugger;
-    const recruiterId = req.user.id || req.user._id;
+export const getAllJobsBySpecificRecruiter = ErrorHandler(async (req, res) => {
+    const id = req.user.id || req.user._id;
 
-    console.log(recruiterId);
+    const { limit, offset } = getPagination(req.query);
 
-    const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 10, 1), 100)
-
-    const offset = Math.max(Number.parseInt(req.query.offset, 10) || 0)
-
-    if (!recruiterId) {
-        const error = new Error("recruiterId is required");
-        error.statusCode = 400;
-
-        throw error;
-    }
-
-    const getJobByRecruiter = await JobModel.find({ recruiterId })
-        .sort({ createdAt: -1 })
-        .skip(offset)
-        .limit(limit);
-
-    // const recruiterIds = getJobByRecruiterIds.map(application => application.recruiterId);
-
-    // console.log(jobs);
-
-    // const jobs = await JobModel
-
-    return res.status(200).json({
-        success: true,
-        message: "job fetches successfully",
-        limit,
-        offset,
-        totalJobs: getJobByRecruiter.length,
-        getJobByRecruiter
+    const { getJobByRecruiter, totalCount } = await jobService.getAllJobsBySpecificRecruiterService({
+        id, limit, offset
     })
+
+    return SuccessResponce(
+        res, 200, "fetched all jobs created by recruiter(you)", {
+        limit, offset, totalCount, getJobByRecruiter
+    });
 })
 
-export const postJobsByRecruiter = ErrorHandler(async (req, res, next) => {
-
-    console.log("Request Body:", req.body);
-
-    const recruiterId = req.user.id || req.user._id;
-
-    console.log("Recruiter ID:", recruiterId);
+export const postJobsByRecruiter = ErrorHandler(async (req, res) => {
+    const id = req.user.id || req.user._id;
 
     const { title, description, jobRole } = req.body;
 
-
-
-    if (!title || !description || !jobRole) {
-
-        const error = new Error("All field are requied");
-        error.statusCode = 400;
-        throw error;
-    }
-
-    const jobData = await JobModel.findOne({ title: title.trim() });
-
-    if (jobData) {
-        const error = new Error("Title of same name already exist");
-        error.statusCode = 409;
-        throw error;
-    }
-
-    const JobDeatils = await JobModel.create({
-        title: title.trim(),
-        description,
-        jobRole,
-        recruiterId: recruiterId
+    const jobData = await jobService.postJobsByRecruiterService({
+        id, title, description, jobRole
     })
 
-    return res.status(201).json({
-        success: true,
-        message: "Job Created Successfully",
-        JobData: JobDeatils,
-    })
+    return SuccessResponce(
+        res, 201, "Job created successfully", jobData
+    )
 });
 
-export const deleteJobByAdminOnly = ErrorHandler(async (req, res, next) => {
+export const deleteJobByAdminOnly = ErrorHandler(async (req, res) => {
 
     const { id } = req.params;
-    console.log(id);
 
+    await jobService.deleteJobByAdminOnlyService(id);
 
-    if (!id) {
-        const error = new Error("Job ID is required");
-        error.statusCode = 400;
-        return error;
-    }
-
-    const removeJob = await JobModel.findByIdAndDelete(id);
-    console.log(removeJob);
-
-    return res.status(200).json({
-        success: false,
-        message: "Job Deleted Successfully!",
-    });
+    return SuccessResponce(
+        res, 200, "Job Deleted Successfully!"
+    )
 });
 
 
 export const ApplyJobByCandidate = ErrorHandler(async (req, res, next) => {
 
-    const { jobId } = req.body;
-    console.log("jobId", jobId);
-
-    console.log("mongoose.isValidObjectId(jobId)", mongoose.isValidObjectId(jobId));
-
-
-    if (!mongoose.isValidObjectId(jobId)) {
-        const error = new Error("Job Id is required");
-        error.statusCode = 400;
-        throw error;
-    }
-
+    const { id } = req.body;
     const candidateId = req.user.id || req.user._id;
-    console.log(candidateId);
 
-    if (!candidateId) {
-        const error = new Error("Candidate Authentication required");
-        error.statusCode = 400;
-        throw error;
-    }
+    const { application, emailStatus } = await jobService.ApplyJobByCandidateService(id, candidateId)
 
-    const jobDetails = await JobModel.findById({ _id: jobId });
-    console.log(jobDetails);
-
-    if (!jobDetails) {
-        const error = new Error("Job Application not found with this jobId");
-        error.statusCode = 400;
-        throw error;
-    }
-
-    console.log(candidateId, jobId);
-
-    const isExistApplication = await JobApplicationModel.findOne({
-        candidateId, jobId
-    });
-
-    if (isExistApplication) {
-        const error = new Error("Candidate already applied for this job");
-        error.statusCode = 400;
-        throw error;
-    }
-
-    // get candidate and recruiter
-
-    const candidate = await UserModal.findOne({
-        _id: candidateId,
-        role: "CANDIDATE"
-    })
-
-    if (!candidate) {
-        const error = new Error("Candidate not found");
-        error.statusCode = 404;
-        throw error;
-    }
-
-    const recruiter = await UserModal.findOne({
-        _id: jobDetails.recruiterId,
-        role: "RECRUITER"
-    })
-
-    if (!recruiter) {
-        const error = new Error("Recruiter not found");
-        error.statusCode = 404;
-        throw error;
-    }
-
-    // create application 
-
-    let application;
-
-    try {
-        application = await JobApplicationModel.create({
-            candidateId,
-            jobId
-        });
-
-        console.log(application);
-
-    } catch (error) {
-        throw error;
-    }
-
-    console.log("candidate", candidate);
-    console.log("recruiter", recruiter);
-
-
-    const emailTemplate = await Promise.allSettled([
-        sendMail({
-            to: candidate.email,
-            subject: "Job Application Submitted Successfully",
-            html: `
-            <h2>Application Submitted Successfully!</h2>
-            <p>Hello ${candidate.username},</p>
-            <p>Your application has been submitted successfully.</p>
-            <p><strong>Job:</strong> ${jobDetails.title}</p>
-            <p><strong>Role:</strong> ${jobDetails.jobRole}</p>
-            <p><strong>Status:</strong> APPLIED</p>
-            <p>Best of luck with your application!</p>
-            `
-        }),
-
-        sendMail({
-            to: recruiter.email,
-            subject: "New Job Application Received",
-            html: `
-            <h2>New Job Application</h2>
-            <p>Hello ${recruiter.username},</p>
-            <p>A candidate has applied for your job posting.</p>
-            <p><strong>Candidate:</strong> ${candidate.username}</p>
-            <p><strong>Email:</strong> ${candidate.email}</p>
-            <p><strong>Job:</strong> ${jobDetails.title}</p>
-            <p><strong>Role:</strong> ${jobDetails.jobRole}</p>
-            <p>Please log in to your portal to review the application.</p>
-        `
-        })
-    ]);
-
-    emailTemplate.map((res, index) => {
-        console.log(res);
-
-        if (res.status === "rejected") {
-            console.error(
-                `Application email ${index + 1} failed:`,
-                res.reason
-            );
+    return SuccessResponce(
+        res, 200, "Job Applied successfully",
+        {
+            application,
+            emailStatus
         }
-    });
-
-
-    return res.status(201).json({
-        success: true,
-        message: "Job Applied successfully",
-        application,
-        emailStatus: {
-            candidate: emailTemplate[0].status,
-            recruiter: emailTemplate[1].status,
-        },
-    });
+    )
 })
 
 export const getMyAppliedJobs = ErrorHandler(async (req, res) => {
-    const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 10, 1), 100);
 
-    const offset = Math.max(Number.parseInt(req.query.offset, 10) || 0);
+    const { limit, offset } = getPagination(req.query);
 
-    const candidateId = req.user.id || req.user._id;
-    // console.log("candidateId : " , candidateId);
+    const id = req.user.id || req.user._id;
 
-    const myAppliedJob = await JobApplicationModel.find({ candidateId })
-        .sort({ AppliedAt: -1 })
-        .skip(offset)
-        .limit(limit)
-        ;
+    const { AllJobs, totalCount } = await jobService.getMyAppliedJobsService(id, limit, offset);
 
-    if (!myAppliedJob) {
-        const error = new Error("candidate not found with this ID");
-        error.statusCode = 400;
-        throw error;
-    }
-
-    // console.log(myAppliedJob);
-
-    const jobIds = myAppliedJob.map(application => application.jobId);
-    // console.log(jobIds);
-
-    const AllJobs = await JobModel.find({
-        _id: { $in: jobIds }
-    });
-
-    console.log(AllJobs);
-
-    return res.status(200).json({
-        success: true,
-        message: "All Jobs get sucessfully",
-        limit: limit,
-        offset: offset,
-        totalJobs: AllJobs.length,
-        AllJobs,
-    })
+    return SuccessResponce(
+        res, 200, "Applied job getting successfully",
+        {
+            limit,
+            offset,
+            totalCount,
+            AllJobs
+        }
+    )
 })
 
 export const getJobsByCandidate = ErrorHandler(async (req, res) => {
-    const { candidateId } = req.body;
+    const { id } = req.body;
 
-    const candidateIds = Array.isArray(candidateId) ? candidateId : candidateId ? [candidateId] : [];
+    const { limit, offset } = getPagination(req.query);
 
-    console.log(candidateIds);
+    const { jobs, totalJobs } = await jobService.getJobsByCandidateService(id, limit, offset);
 
-    const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 10, 1), 100);
+    console.log(jobs);
+    console.log(totalJobs);
 
-    const offset = Math.max(Number.parseInt(req.query.offset, 10) || 0);
+    return SuccessResponce(
+        res, 200, "Job fetched successfully for admin only",
 
-    const isValidIds = candidateIds.some(id => !mongoose.isValidObjectId(id));
-
-    // console.log(candidateId);
-
-    if (candidateIds.length === 0 || isValidIds) {
-        const error = new Error("Candidate ID(s) is required");
-        error.statusCode = 400;
-        throw error;
-    }
-
-
-    const User = await UserModal.find({
-        _id: { $in: candidateIds }
-    }).populate("username email");
-
-    console.log(User);
-
-
-    const candidateAppliedJob = await JobApplicationModel.find({ candidateId: { $in: candidateIds } }).sort({ createdAt: -1 }).populate("candidateId" , "username email");
-
-    console.log("Candidate Applications:", candidateAppliedJob);
-    console.log("------------------------------------------");
-
-    const JobIds = [...new Set(candidateAppliedJob.filter(application => application.jobId)
-        .map(application => application.jobId.toString()))];
-
-    console.log("Applied Job IDs:", JobIds);
-
-    if (JobIds.length === 0) {
-        return res.status(200).json({
-            success: true,
-            message: "No Jobs Found for the given candidate(s)",
-            limit,
-            offset,
-            totalJobs: 0,
-            jobs: [],
-        });
-    }
-
-    // const objectIds = JobIds.map(
-    //     id => new mongoose.Types.ObjectId(id)
-    // );
-
-
-    const jobs = await JobModel.find({
-        _id: { $in: JobIds }
-    }).skip(offset).limit(limit);
-
-    console.log("Jobs Data", jobs);
-
-
-    const totalJobs = await JobModel.countDocuments({ _id: { $in: JobIds } })
-
-    return res.status(200).json({
-        success: true,
-        message: "Job Fetched Successfully",
-        limit,
-        offset,
-        totalJobs: totalJobs,
-        jobs,
-    })
-
+        {
+            limit, offset,
+            jobs, totalJobs
+        }
+    )
 
 })
 
 export const getJobApplyCandidateForRecruiter = ErrorHandler(async (req, res) => {
-    const recruiterId = req.user.id;
+    const id = req.user.id;
 
-    const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 10, 1), 100);
+    const { limit, offset } = getPagination(req.query);
 
-    const offset = Math.max(Number.parseInt(req.query.offset, 10) || 0, 0);
+    const { applicants, totalApplications } = await jobService.getJobApplyCandidateForRecruiterService(id, limit, offset)
 
-    const recruiterJobs = await JobModel.find({ recruiterId });
-
-    const jobIds = recruiterJobs.map(job => job._id);
-    console.log(jobIds);
-
-
-    if (jobIds.length === 0) {
-        return res.status(200).json({
-            success: true,
-            message: "No jobs posted by this recruiter",
-            totalApplications: 0,
-            limit,
-            offset,
-            applicants: []
-        });
-    }
-
-    const totalApplications = await JobApplicationModel.countDocuments({
-        jobId: { $in: jobIds }
-    });
-
-    const applicants = await JobApplicationModel.find({
-        jobId: { $in: jobIds }
-    })
-        .populate("candidateId", "username email")
-        .populate("jobId", "title description jobRole")
-        .sort({ createdAt: -1, _id: -1 })
-        .skip(offset)
-        .limit(limit);
-
-    return res.status(200).json({
-        success: true,
-        message: "Application fetched successfully",
-        totalApplications,
-        limit,
-        offset,
-        applicants
-    });
+    return SuccessResponce(
+        res, 200, "Job fetched successfully",
+        {
+            limit, offset, applicants, totalApplications
+        }
+    )
 });
 
 

@@ -3,6 +3,8 @@ import express from "express";
 import connectDB from "./config/connectDB.js";
 import authrouter from "./routes/authRoutes.js";
 import jobrouter from "./routes/jobRoutes.js";
+import exportrouter from "./routes/exportRoutes.js";
+
 import { GlobalErrorMiddleware } from "./utils/GlobalErrorHandler.js";
 
 const app = express();
@@ -18,6 +20,7 @@ app.get("/", (req, res) => {
 
 app.use("/auth", authrouter);
 app.use("/", jobrouter);
+app.use("/",exportrouter)
 
 app.use(GlobalErrorMiddleware);
 
