@@ -1,9 +1,4 @@
-import mongoose from "mongoose";
-import JobApplicationModel from "../models/JobApplication.js";
-import JobModel from "../models/jobModel.js";
-import UserModal from "../models/UserAuth.js";
 import ErrorHandler from "../utils/ErrorHandler.js";
-import { sendMail } from "../utils/sendMail.js";
 import { getPagination } from "../utils/getPagination.js";
 import { SuccessResponce } from "../utils/responseHandler.js";
 import * as jobService from "../services/jobService.js";
@@ -63,7 +58,6 @@ export const deleteJobByAdminOnly = ErrorHandler(async (req, res) => {
         res, 200, "Job Deleted Successfully!"
     )
 });
-
 
 export const ApplyJobByCandidate = ErrorHandler(async (req, res, next) => {
 
@@ -135,5 +129,3 @@ export const getJobApplyCandidateForRecruiter = ErrorHandler(async (req, res) =>
         }
     )
 });
-
-

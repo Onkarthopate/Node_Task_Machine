@@ -42,7 +42,6 @@ export const forgetPassword = ErrorHandler(async (req, res) => {
     });
 });
 
-
 export const resetPassword = ErrorHandler(async (req, res) => {
 
     const { email, otp, newPass, confirmPass } = req.body;

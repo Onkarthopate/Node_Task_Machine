@@ -1,7 +1,7 @@
 import CustomError from "../utils/CustomError.js";
 import bcrypt from "bcrypt";
 import User from "../models/UserAuth.js";
-import { genrateJWT } from "../utils/jwtTokenGenrate.js";
+import { compareOTP, comparePassword, generateOTP, genrateJWT, hashOTP, hashPassword, } from "../utils/commonUtils.js";
 import { getTransporter } from "../utils/sendMail.js";
 
 export const registerUserService = async (username, email, password) => {
@@ -13,7 +13,7 @@ export const registerUserService = async (username, email, password) => {
         throw new CustomError("Email already exists", 409);
     }
 
-    const hashPassword = await bcrypt.hash(password, 10);
+    const hashPassword = await hashPassword(password);
 
     const createUser = await User.create({
         username,
@@ -21,15 +21,10 @@ export const registerUserService = async (username, email, password) => {
         password: hashPassword,
     });
 
-    console.log("createUser", createUser);
-
     const userResponse = createUser.toObject();
-    console.log("userResponse", userResponse);
-
     delete userResponse.password;
 
     return userResponse;
-
 }
 
 export const loginService = async (email, password) => {
@@ -41,15 +36,13 @@ export const loginService = async (email, password) => {
         throw new CustomError("User with this email not exist", 404);
     }
 
-    const comparePass = await bcrypt.compare(password, user.password);
+    const comparePass = await comparePassword(password , user.password );
 
     if (!comparePass) {
         throw new CustomError("Invalid email or password", 401);
     }
 
     const token = genrateJWT(user._id, user.role);
-
-    console.log(token);
 
     const userResponse = user.toObject();
     delete userResponse.password;
@@ -68,11 +61,9 @@ export const forgetPasswordService = async (email) => {
         throw new CustomError("Invalid User", 400);
     }
 
-    const randomOtp = Math.floor(
-        100000 + Math.random() * 900000
-    ).toString();
+    const randomOtp = generateOTP();
 
-    const hashOtp = await bcrypt.hash(randomOtp, 10);
+    const hashOtp = await hashOTP(randomOtp);
 
     const expireTime = new Date(Date.now() + 10 * 60 * 1000);
 
@@ -109,7 +100,6 @@ export const forgetPasswordService = async (email) => {
         throw new CustomError("Unable to send OTP. Please try again.", 500);
     }
 }
-
 
 export const resetPasswordService = async (
     email,
@@ -153,7 +143,7 @@ export const resetPasswordService = async (
         );
     }
 
-    const isOtpMatch = await bcrypt.compare(
+    const isOtpMatch = await compareOTP(
         String(otp),
         otpData.otp
     );
@@ -165,7 +155,7 @@ export const resetPasswordService = async (
         );
     }
 
-    const hashPassword = await bcrypt.hash(newPass, 10);
+    const hashPassword = await hashPassword(newPass);
 
     user.password = hashPassword;
 

@@ -17,14 +17,17 @@ const UserAuthModel = mongooose.Schema({
     },
     password: {
         type: String,
-        select:false,
+        select: false,
         required: [true, "password is required"],
         minlength: [8, "Password must be at least 8 characters long"],
     },
     role: {
         type: String,
-        enum: ["CANDIDATE", "RECRUITER", "ADMIN"],
+        //enum: ["CANDIDATE", "RECRUITER", "ADMIN"],
+        required: true,
+        uppercase: true,
         default: "CANDIDATE",
+        trim: true,
     },
 }, {
     timestamps: true,

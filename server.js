@@ -1,9 +1,8 @@
 import "dotenv/config";
 import express from "express";
 import connectDB from "./config/connectDB.js";
-import authrouter from "./routes/authRoutes.js";
-import jobrouter from "./routes/jobRoutes.js";
-import exportrouter from "./routes/exportRoutes.js";
+import routes from "./routes/index.js";
+import {seedRoles} from "./utils/seedRoles.js";
 
 import { GlobalErrorMiddleware } from "./utils/GlobalErrorHandler.js";
 
@@ -18,15 +17,14 @@ app.get("/", (req, res) => {
     res.send("Hello from server!");
 });
 
-app.use("/auth", authrouter);
-app.use("/", jobrouter);
-app.use("/",exportrouter)
+app.use("/api", routes);
 
 app.use(GlobalErrorMiddleware);
 
 const RunServer = async () => {
     try {
         await connectDB();
+        await seedRoles()
         app.listen(PORT, () => {
             console.log(`Server is runnning on ${PORT}`);
         });
