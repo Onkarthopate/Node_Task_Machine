@@ -1,5 +1,4 @@
 import CustomError from "../utils/CustomError.js";
-import bcrypt from "bcrypt";
 import User from "../models/UserAuth.js";
 import { compareOTP, comparePassword, generateOTP, genrateJWT, hashOTP, hashPassword, } from "../utils/commonUtils.js";
 import { getTransporter } from "../utils/sendMail.js";
@@ -13,12 +12,12 @@ export const registerUserService = async (username, email, password) => {
         throw new CustomError("Email already exists", 409);
     }
 
-    const hashPassword = await hashPassword(password);
+    const pass = await hashPassword(password);
 
     const createUser = await User.create({
         username,
         email: formatEmail,
-        password: hashPassword,
+        password: pass,
     });
 
     const userResponse = createUser.toObject();
@@ -36,13 +35,18 @@ export const loginService = async (email, password) => {
         throw new CustomError("User with this email not exist", 404);
     }
 
-    const comparePass = await comparePassword(password , user.password );
+    const comparePass = await comparePassword(password, user.password);
 
     if (!comparePass) {
         throw new CustomError("Invalid email or password", 401);
     }
 
-    const token = genrateJWT(user._id, user.role);
+    const sessionId = crypto.randomUUID();
+    user.activeSessionId = sessionId;
+    await user.save();
+
+
+    const token = genrateJWT(user._id, user.role, sessionId);
 
     const userResponse = user.toObject();
     delete userResponse.password;

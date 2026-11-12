@@ -1,11 +1,11 @@
 
 import ErrorHandler from "../utils/ErrorHandler.js";
-import * as exportController from "../services/exportService.js";
+import * as exportService from "../services/exportService.js";
 
 export const exportUsersByRole = ErrorHandler(async (req, res, next) => {
   const { role } = req.query;
 
-  const csv = await exportController.exportUserService(role, res);
+  const csv = await exportService.exportUserService(role, res);
 
   res.attachment(`${role}_users.csv`);
 
@@ -16,7 +16,7 @@ export const exportUsersByRole = ErrorHandler(async (req, res, next) => {
 export const exportCandidateAppliedJob = ErrorHandler(async (req, res, next) => {
   const { id } = req.body;
 
-  const csv = await exportController.candidateAppliedJobService(id);
+  const csv = await exportService.candidateAppliedJobService(id);
 
   res.setHeader("Content-Type", "text/csv; charset=utf-8");
   res.setHeader(

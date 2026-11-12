@@ -1,3 +1,4 @@
+import User from "../models/UserAuth.js";
 import ErrorHandler from "../utils/ErrorHandler.js";
 import jwt from "jsonwebtoken";
 
@@ -22,9 +23,29 @@ export const AuthTokenMiddleware = ErrorHandler(async (req, res, next) => {
         process.env.JWT_SECRET,
     )
 
-    req.user = decodeToken;
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+        throw new CustomError("User not found", 401);
+    }
+
+    if (
+        !user.activeSessionId ||
+        user.activeSessionId !== decoded.sessionId
+    ) {
+        throw new CustomError(
+            "You are logged in on another device",
+            401
+        );
+    }
+
+    req.user = {
+        id: user._id,
+        role: user.role,
+        sessionId: decoded.sessionId
+    };
     console.log(req.user);
-        
+
     // req.token = token;
     next();
 })

@@ -37,6 +37,7 @@ const roles = [
 
 export const seedRoles = async () => {
 
+    
     await Promise.all(roles.map((role) =>
         RoleTable.updateOne(
             { name: role.name },

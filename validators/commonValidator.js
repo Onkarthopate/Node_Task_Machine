@@ -25,7 +25,7 @@ export const passwordValidator = body("password")
         "Password must contain uppercase, lowercase, number and special character"
     );
 
-export const roleValidator = 
+export const roleValidator =
     query("role")
         .notEmpty()
         .withMessage("Role is required")
@@ -35,6 +35,15 @@ export const roleValidator =
 
 
 export const idValidator = body("id")
-        .notEmpty()
-        .withMessage("id is required")
-        .bail()
+    .notEmpty()
+    .withMessage("Id is required")
+    .bail()
+    .custom((value) => {
+        const ids = Array.isArray(value) ? value : [value];
+
+        if (!ids.every(id => mongoose.isValidObjectId(id))) {
+            throw new Error("Invalid candidate ID");
+        }
+
+        return true;
+    });

@@ -29,6 +29,10 @@ const UserAuthModel = mongooose.Schema({
         default: "CANDIDATE",
         trim: true,
     },
+    activeSessionId: {
+        type: String,
+        default: null
+    },
 }, {
     timestamps: true,
 },

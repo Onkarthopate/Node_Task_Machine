@@ -1,9 +1,9 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
-export const genrateJWT = (id, role) => {
+export const genrateJWT = (id, role,sessionId) => {
     return jwt.sign(
-        { id, role },
+        { id, role ,sessionId},
         process.env.JWT_SECRET,
         { expiresIn: process.env.JWT_EXPIRY_TIME }
     )

@@ -3,7 +3,7 @@ import * as authAdminController from "../controllers/authAdminController.js"
 import { AuthTokenMiddleware } from "../middleware/AuthMiddleware.js";
 import { validateRequest } from "../validators/authValidator.js";
 import { registerValidator, removeUserValidator, updateUserValidator } from "../validators/adminValidator.js";
-import {authorizePermission} from "../middleware/permissionMiddleware.js";
+import { authorizePermission } from "../middleware/permissionMiddleware.js";
 
 const router = express.Router();
 
