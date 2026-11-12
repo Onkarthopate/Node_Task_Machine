@@ -1,10 +1,8 @@
-import ErrorHandler from "../utils/ErrorHandler.js";
 import { getPagination } from "../utils/getPagination.js";
 import { SuccessResponce } from "../utils/responseHandler.js";
 import * as jobService from "../services/jobService.js";
 
-export const getAllJobs = ErrorHandler(async (req, res) => {
-
+export const getAllJobs = async (req, res) => {
     const { limit, offset } = getPagination(req.query);
 
     const { jobs, totalCount } = await jobService.getAllJobsService({
@@ -16,67 +14,66 @@ export const getAllJobs = ErrorHandler(async (req, res) => {
         {
             limit, offset, totalCount
         }
-    )
-});
+    );
+};
 
-export const getAllJobsBySpecificRecruiter = ErrorHandler(async (req, res) => {
+export const getAllJobsBySpecificRecruiter = async (req, res) => {
     const id = req.user.id || req.user._id;
 
     const { limit, offset } = getPagination(req.query);
 
     const { getJobByRecruiter, totalCount } = await jobService.getAllJobsBySpecificRecruiterService({
         id, limit, offset
-    })
+    });
 
     return SuccessResponce(
-        res, 200, "fetched all jobs created by recruiter(you)", {
-        limit, offset, totalCount, getJobByRecruiter
-    });
-})
+        res, 200, "Fetched all jobs created by recruiter", getJobByRecruiter,
+        {
+            limit, offset, totalCount
+        }
+    );
+};
 
-export const postJobsByRecruiter = ErrorHandler(async (req, res) => {
+export const postJobsByRecruiter = async (req, res) => {
     const id = req.user.id || req.user._id;
 
     const { title, description, jobRole } = req.body;
 
     const jobData = await jobService.postJobsByRecruiterService({
         id, title, description, jobRole
-    })
+    });
 
     return SuccessResponce(
         res, 201, "Job created successfully", jobData
-    )
-});
+    );
+};
 
-export const deleteJobByAdminOnly = ErrorHandler(async (req, res) => {
-
+export const deleteJobByAdminOnly = async (req, res) => {
     const { id } = req.params;
 
     await jobService.deleteJobByAdminOnlyService(id);
 
     return SuccessResponce(
         res, 200, "Job Deleted Successfully!"
-    )
-});
+    );
+};
 
-export const ApplyJobByCandidate = ErrorHandler(async (req, res, next) => {
-
-    const { id } = req.body;
+export const ApplyJobByCandidate = async (req, res) => {
+    const { id } = req.params;
     const candidateId = req.user.id || req.user._id;
 
-    const { application, emailStatus } = await jobService.ApplyJobByCandidateService(id, candidateId)
+    const { application, emailStatus } = await jobService.ApplyJobByCandidateService(id, candidateId);
 
     return SuccessResponce(
-        res, 200, "Job Applied successfully",
+        res, 201, "Job Applied successfully",
         {
             application,
             emailStatus
         }
-    )
-})
+    );
+};
 
-export const getMyAppliedJobs = ErrorHandler(async (req, res) => {
-
+export const getMyAppliedJobs = async (req, res) => {
     const { limit, offset } = getPagination(req.query);
 
     const id = req.user.id || req.user._id;
@@ -84,48 +81,41 @@ export const getMyAppliedJobs = ErrorHandler(async (req, res) => {
     const { AllJobs, totalCount } = await jobService.getMyAppliedJobsService(id, limit, offset);
 
     return SuccessResponce(
-        res, 200, "Applied job getting successfully",
+        res, 200, "Applied jobs fetched successfully", AllJobs,
         {
             limit,
             offset,
-            totalCount,
-            AllJobs
+            totalCount
         }
-    )
-})
+    );
+};
 
-export const getJobsByCandidate = ErrorHandler(async (req, res) => {
-    const { id } = req.body;
+export const getJobsByCandidate = async (req, res) => {
+    const { id } = req.query;
 
     const { limit, offset } = getPagination(req.query);
 
     const { jobs, totalJobs } = await jobService.getJobsByCandidateService(id, limit, offset);
 
-    console.log(jobs);
-    console.log(totalJobs);
-
     return SuccessResponce(
-        res, 200, "Job fetched successfully for admin only",
-
+        res, 200, "Jobs fetched successfully", jobs,
         {
-            limit, offset,
-            jobs, totalJobs
+            limit, offset, totalCount: totalJobs
         }
-    )
+    );
+};
 
-})
-
-export const getJobApplyCandidateForRecruiter = ErrorHandler(async (req, res) => {
+export const getJobApplyCandidateForRecruiter = async (req, res) => {
     const id = req.user.id;
 
     const { limit, offset } = getPagination(req.query);
 
-    const { applicants, totalApplications } = await jobService.getJobApplyCandidateForRecruiterService(id, limit, offset)
+    const { applicants, totalApplications } = await jobService.getJobApplyCandidateForRecruiterService(id, limit, offset);
 
     return SuccessResponce(
-        res, 200, "Job fetched successfully",
+        res, 200, "Applications fetched successfully", applicants,
         {
-            limit, offset, applicants, totalApplications
+            limit, offset, totalCount: totalApplications
         }
-    )
-});
+    );
+};

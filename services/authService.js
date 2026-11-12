@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import CustomError from "../utils/CustomError.js";
 import User from "../models/UserAuth.js";
 import { compareOTP, comparePassword, generateOTP, genrateJWT, hashOTP, hashPassword, } from "../utils/commonUtils.js";
@@ -50,6 +51,7 @@ export const loginService = async (email, password) => {
 
     const userResponse = user.toObject();
     delete userResponse.password;
+    delete userResponse.activeSessionId;
 
     return {
         user: userResponse, token

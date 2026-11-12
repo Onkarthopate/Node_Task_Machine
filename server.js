@@ -3,6 +3,7 @@ import express from "express";
 import connectDB from "./config/connectDB.js";
 import routes from "./routes/index.js";
 import {seedRoles} from "./utils/seedRoles.js";
+import CustomError from "./utils/CustomError.js";
 
 import { GlobalErrorMiddleware } from "./utils/GlobalErrorHandler.js";
 
@@ -18,6 +19,10 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api", routes);
+
+app.use((req, res, next) => {
+    next(new CustomError(`Route ${req.originalUrl} not found`, 404));
+});
 
 app.use(GlobalErrorMiddleware);
 

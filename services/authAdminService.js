@@ -60,7 +60,7 @@ export const registerRecruiterService = async (username, email, password) => {
         username,
         email: formatEmail,
         password: hashPassword,
-        role: recruiterRole.role,
+        role: recruiterRole.name,
     });
 
     return {
@@ -83,11 +83,11 @@ export const getAllUsersService = async ({ role, limit, offset }) => {
         .skip(offset)
         .limit(limit);
 
-    const totalcount = await User.countDocuments({ role });
+    const totalCount = await User.countDocuments({ role });
 
     return {
         users,
-        totalcount
+        totalCount
     }
 }
 
@@ -138,5 +138,5 @@ export const updateUserService = async (role, id, username, email) => {
         throw new CustomError("User not found for this role", 404);
     }
 
-
+    return user;
 }

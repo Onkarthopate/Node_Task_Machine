@@ -1,16 +1,17 @@
 import express from "express";
 import { AuthTokenMiddleware } from "../middleware/AuthMiddleware.js";
 import { validateRequest } from "../validators/authValidator.js";
-import { idValidator, roleValidator } from "../validators/commonValidator.js";
+import { queryIdValidator, roleValidator } from "../validators/commonValidator.js";
 import * as exportController from "../controllers/exportController.js";
 import { authorizePermission } from "../middleware/permissionMiddleware.js";
+import ErrorHandler from "../utils/ErrorHandler.js";
 
 const router = express.Router();
 
 // export candidate recruiter by its role wise 
-router.get("/export", AuthTokenMiddleware, authorizePermission("user:export"), roleValidator, validateRequest, exportController.exportUsersByRole);
+router.get("/export", AuthTokenMiddleware, authorizePermission("user:export"), roleValidator, validateRequest, ErrorHandler(exportController.exportUsersByRole));
 
 // export all or specific candidate applied to job
-router.post("/exportCandidateAppliedJob", AuthTokenMiddleware, authorizePermission("job:export"), idValidator, validateRequest, exportController.exportCandidateAppliedJob);
+router.get("/applied-jobs", AuthTokenMiddleware, authorizePermission("job:export"), queryIdValidator, validateRequest, ErrorHandler(exportController.exportCandidateAppliedJob));
 
 export default router;

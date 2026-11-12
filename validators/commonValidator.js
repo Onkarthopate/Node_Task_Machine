@@ -1,4 +1,5 @@
-import { body, query } from "express-validator";
+import { body, param, query } from "express-validator";
+import mongoose from "mongoose";
 
 export const usernameValidator = body("username")
     .trim()
@@ -34,7 +35,14 @@ export const roleValidator =
         .withMessage("Invalid role");
 
 
-export const idValidator = body("id")
+export const paramIdValidator = param("id")
+    .notEmpty()
+    .withMessage("Id is required")
+    .bail()
+    .isMongoId()
+    .withMessage("Invalid ID");
+
+export const queryIdValidator = query("id")
     .notEmpty()
     .withMessage("Id is required")
     .bail()

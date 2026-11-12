@@ -1,8 +1,7 @@
 
-import ErrorHandler from "../utils/ErrorHandler.js";
 import * as exportService from "../services/exportService.js";
 
-export const exportUsersByRole = ErrorHandler(async (req, res, next) => {
+export const exportUsersByRole = async (req, res) => {
   const { role } = req.query;
 
   const csv = await exportService.exportUserService(role, res);
@@ -10,11 +9,10 @@ export const exportUsersByRole = ErrorHandler(async (req, res, next) => {
   res.attachment(`${role}_users.csv`);
 
   return res.type("text/csv; charset=utf-8").send(csv);
+};
 
-});
-
-export const exportCandidateAppliedJob = ErrorHandler(async (req, res, next) => {
-  const { id } = req.body;
+export const exportCandidateAppliedJob = async (req, res) => {
+  const { id } = req.query;
 
   const csv = await exportService.candidateAppliedJobService(id);
 
@@ -25,4 +23,4 @@ export const exportCandidateAppliedJob = ErrorHandler(async (req, res, next) => 
   );
 
   return res.status(200).send(csv);
-});
+};

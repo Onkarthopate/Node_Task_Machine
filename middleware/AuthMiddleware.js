@@ -1,27 +1,25 @@
 import User from "../models/UserAuth.js";
+import CustomError from "../utils/CustomError.js";
 import ErrorHandler from "../utils/ErrorHandler.js";
 import jwt from "jsonwebtoken";
 
 export const AuthTokenMiddleware = ErrorHandler(async (req, res, next) => {
-    // const authToken = req.headers.authorization;
     const authToken = req.headers.authorization;
-    // console.log(authToken);
 
-    if (!authToken || !authToken.includes('Bearer')) {
-        return res.status(401).json({
-            success: false,
-            message: "Access denied , You are not allowed for this operation."
-        })
+    if (!authToken || !authToken.startsWith("Bearer ")) {
+        throw new CustomError("Access denied, you are not allowed for this operation.", 401);
     }
 
     const token = authToken.split(" ")[1];
 
-    // console.log(token);
+    if (!token) {
+        throw new CustomError("Access denied, token missing.", 401);
+    }
 
-    const decodeToken = jwt.verify(
+    const decoded = jwt.verify(
         token,
         process.env.JWT_SECRET,
-    )
+    );
 
     const user = await User.findById(decoded.id);
 
@@ -44,8 +42,6 @@ export const AuthTokenMiddleware = ErrorHandler(async (req, res, next) => {
         role: user.role,
         sessionId: decoded.sessionId
     };
-    console.log(req.user);
 
-    // req.token = token;
     next();
-})
+});

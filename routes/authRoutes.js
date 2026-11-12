@@ -4,23 +4,24 @@ import { AuthTokenMiddleware } from "../middleware/AuthMiddleware.js";
 import { validateRequest } from "../validators/authValidator.js";
 import { registerValidator, removeUserValidator, updateUserValidator } from "../validators/adminValidator.js";
 import { authorizePermission } from "../middleware/permissionMiddleware.js";
+import ErrorHandler from "../utils/ErrorHandler.js";
 
 const router = express.Router();
 
-router.get("/getAllUsers", AuthTokenMiddleware, authorizePermission("user:manage"), authAdminController.getAllUsers);
+router.get("/users", AuthTokenMiddleware, authorizePermission("user:manage"), ErrorHandler(authAdminController.getAllUsers));
 
-router.delete("/removeUser/:id", AuthTokenMiddleware, authorizePermission("user:manage"), removeUserValidator,
-    validateRequest, authAdminController.removeUser);
+router.delete("/users/:id", AuthTokenMiddleware, authorizePermission("user:manage"), removeUserValidator,
+    validateRequest, ErrorHandler(authAdminController.removeUser));
 
-router.put("/updateUser/:id", AuthTokenMiddleware, authorizePermission("user:manage"), updateUserValidator,
-    validateRequest, authAdminController.updateUser);
+router.put("/users/:id", AuthTokenMiddleware, authorizePermission("user:manage"), updateUserValidator,
+    validateRequest, ErrorHandler(authAdminController.updateUser));
 
 
 router.post("/registerRecruiter", AuthTokenMiddleware, authorizePermission("create-recruiter"), registerValidator,
-    validateRequest, authAdminController.registerRecruiter);
+    validateRequest, ErrorHandler(authAdminController.registerRecruiter));
 
 // for admin only 
 router.post("/registerAdmin", registerValidator,
-    validateRequest, authAdminController.registerAdmin);
+    validateRequest, ErrorHandler(authAdminController.registerAdmin));
 
 export default router;

@@ -11,7 +11,7 @@ export const exportUserService = async (role, res) => {
         .lean();
 
     if (!userData.length) {
-        throw new CustomError("No User found");
+        throw new CustomError("No User found", 404);
     }
 
     const parser = new Parser({
@@ -27,7 +27,7 @@ export const candidateAppliedJobService = async (id) => {
     const isValidIds = candidateIds.some(id => !mongoose.isValidObjectId(id));
 
     if (candidateIds.length === 0 || isValidIds) {
-        throw new CustomError("Candidate ID(s) is required");
+        throw new CustomError("Candidate ID(s) is required", 400);
     }
 
     const candidateAppliedJob = await JobApplicationModel.find({ candidateId: { $in: candidateIds } })

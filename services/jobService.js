@@ -11,9 +11,9 @@ export const getAllJobsService = async ({ limit, offset }) => {
         .skip(offset)
         .limit(limit);
 
-    const totalJobs = await JobModel.countDocuments();
+    const totalCount = await JobModel.countDocuments();
 
-    return { jobs, totalJobs }
+    return { jobs, totalCount }
 }
 
 export const getAllJobsBySpecificRecruiterService = async ({ id, limit, offset }) => {
@@ -34,7 +34,7 @@ export const postJobsByRecruiterService = async ({ id, title, description, jobRo
     const jobData = await JobModel.findOne({ title: title.trim() });
 
     if (jobData) {
-        throw new CustomError("Job Title already exist")
+        throw new CustomError("Job Title already exist", 409)
     }
 
     const JobDeatils = await JobModel.create({
@@ -52,7 +52,7 @@ export const deleteJobByAdminOnlyService = async (id) => {
     const jobId = await JobModel.findById({ _id: id });
 
     if (!jobId) {
-        throw new CustomError("job is already deleted");
+        throw new CustomError("Job not found", 404);
     }
     const removeJob = await JobModel.findByIdAndDelete(jobId);
     return removeJob;
@@ -65,8 +65,8 @@ export const getMyAppliedJobsService = async (id, limit, offset) => {
         .skip(offset)
         .limit(limit);
 
-    if (!myAppliedJob) {
-        throw new CustomError("candidate not found with this ID");
+    if (!myAppliedJob.length) {
+        return { AllJobs: [], totalCount: 0 };
     }
 
     const jobIds = myAppliedJob.map(application => application.jobId);
@@ -88,7 +88,7 @@ export const getJobsByCandidateService = async (id, limit, offset) => {
     const isValidIds = candidateIds.some(id => !mongoose.isValidObjectId(id));
 
     if (candidateIds.length === 0 || isValidIds) {
-        throw new CustomError("Candidate ID(s) is required");
+        throw new CustomError("Candidate ID(s) is required", 400);
     }
 
     const candidateAppliedJob = await JobApplicationModel.find({ candidateId: { $in: candidateIds } })
@@ -151,12 +151,12 @@ export const getJobApplyCandidateForRecruiterService = async (id, limit, offset)
 export const ApplyJobByCandidateService = async (jobId, candidateId) => {
   
     if (!mongoose.isValidObjectId(jobId)) {
-        throw new CustomError("Job Id is required")
+        throw new CustomError("Job Id is required", 400)
     }
     const jobDetails = await JobModel.findById({ _id: jobId });
 
     if (!jobDetails) {
-        throw new CustomError("Job Application not found with this jobId");
+        throw new CustomError("Job not found with this jobId", 404);
     }
 
     const isExistApplication = await JobApplicationModel.findOne({
@@ -164,7 +164,7 @@ export const ApplyJobByCandidateService = async (jobId, candidateId) => {
     });
 
     if (isExistApplication) {
-        throw new CustomError("Candidate already applied for this job");
+        throw new CustomError("Candidate already applied for this job", 409);
     }
 
     const candidate = await UserModal.findOne({
@@ -173,7 +173,7 @@ export const ApplyJobByCandidateService = async (jobId, candidateId) => {
     })
 
     if (!candidate) {
-        throw new CustomError("Candidate not found");
+        throw new CustomError("Candidate not found", 404);
     }
 
     const recruiter = await UserModal.findOne({
@@ -182,7 +182,7 @@ export const ApplyJobByCandidateService = async (jobId, candidateId) => {
     })
 
     if (!recruiter) {
-        throw new CustomError("recruiter not found");
+        throw new CustomError("Recruiter not found", 404);
     }
 
     let application;

@@ -1,11 +1,10 @@
-import ErrorHandler from "../utils/ErrorHandler.js";
 import * as authAdminService from "../services/authAdminService.js";
 import { SuccessResponce } from "../utils/responseHandler.js";
 import { getPagination } from "../utils/getPagination.js";
 
 // all admin actions
 
-export const registerAdmin = ErrorHandler(async (req, res, next) => {
+export const registerAdmin = async (req, res) => {
     const { username, email, password } = req.body;
 
     const user = await authAdminService.registerAdminService(
@@ -20,11 +19,10 @@ export const registerAdmin = ErrorHandler(async (req, res, next) => {
         "Admin registered successfully",
         user
     );
-});
+};
 
-export const registerRecruiter = ErrorHandler(async (req, res, next) => {
+export const registerRecruiter = async (req, res) => {
     const { username, email, password } = req.body;
-
 
     const user = await authAdminService.registerRecruiterService(
         username,
@@ -38,47 +36,43 @@ export const registerRecruiter = ErrorHandler(async (req, res, next) => {
         "Recruiter registered successfully",
         user
     );
-});
+};
 
-export const getAllUsers = ErrorHandler(async (req, res) => {
+export const getAllUsers = async (req, res) => {
     const { role } = req.query;
 
     const { limit, offset } = getPagination(req.query);
 
     const { users, totalCount } = await authAdminService.getAllUsersService({
         role, limit, offset
-    })
-
-    return SuccessResponce(
-        res, 200, `${role} fetched sucessfully`, users,
-        {
-            limit, offset, totalCount
-        }
-    )
-});
-
-export const removeUser = ErrorHandler(async (req, res) => {
-
-    const { id } = req.params;
-
-    const removeUser = await authAdminService.removeUserService({
-        id
     });
 
     return SuccessResponce(
-        res, 200, "user deleted sucessfully", removeUser,
-    )
-});
+        res, 200, `${role} fetched successfully`, users,
+        {
+            limit, offset, totalCount
+        }
+    );
+};
 
-export const updateUser = ErrorHandler(async (req, res) => {
+export const removeUser = async (req, res) => {
+    const { id } = req.params;
+
+    const removedUser = await authAdminService.removeUserService(id);
+
+    return SuccessResponce(
+        res, 200, "User deleted successfully", removedUser
+    );
+};
+
+export const updateUser = async (req, res) => {
     const { role } = req.query;
     const { id } = req.params;
     const { username, email } = req.body;
 
-
     const user = await authAdminService.updateUserService(
-        role,id,username,email
-    )
+        role, id, username, email
+    );
 
-    return SuccessResponce(res,200,`${role} updated sucessfully`,user)
-});
+    return SuccessResponce(res, 200, `${role} updated successfully`, user);
+};
