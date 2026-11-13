@@ -29,7 +29,7 @@ app.use(GlobalErrorMiddleware);
 const RunServer = async () => {
     try {
         await connectDB();
-        await seedRoles()
+        await seedRoles();
         app.listen(PORT, () => {
             console.log(`Server is runnning on ${PORT}`);
         });

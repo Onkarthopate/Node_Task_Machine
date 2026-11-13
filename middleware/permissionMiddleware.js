@@ -1,29 +1,66 @@
 import RoleTable from "../models/roleModel.js";
+import Permission from "../models/permissionModel.js";
+import RolePermission from "../models/rolePermissionModel.js";
 import CustomError from "../utils/CustomError.js";
 import ErrorHandler from "../utils/ErrorHandler.js";
 
-export const authorizePermission = (...permissions) => {
-    return ErrorHandler(async (req, res, next) => {
-        if (!req.user || !req.user.role) {
-            throw new CustomError("Unauthorized", 401);
-        }
+export const checkPermission = ErrorHandler(async (req, res, next) => {
+    if (!req.user || !req.user.role) {
+        throw new CustomError("Unauthorized", 401);
+    }
 
-        const role = await RoleTable.findOne({
-            name: req.user.role.toUpperCase()
-        }).lean();
+    const role = await RoleTable.findOne({
+        name: req.user.role.toUpperCase(),
+    }).lean();
 
-        if (!role) {
-            throw new CustomError("Role not found", 403);
-        }
+    if (!role) {
+        throw new CustomError("Role not found", 403);
+    }
 
-        const hasPermission = permissions.every(permission =>
-            role.permissions.includes(permission)
-        );
+    const userPermission = await Permission.findOne({
+        baseUrl: req.baseUrl,
+        path: req.route?.path,
+        method: req.method.toUpperCase(),
+    }).lean();
 
-        if (!hasPermission) {
-            throw new CustomError("Permission denied", 403);
-        }
+    if (!userPermission) {
+        throw new CustomError("Permission not found", 403);
+    }
 
-        next();
+    const rolePermission = await RolePermission.findOne({
+        roleId: role._id,
+        permissionId: userPermission._id,
     });
-};
+
+    if (!rolePermission) {
+        throw new CustomError("You don't have permission to access this", 403);
+    }
+
+    next();
+});
+
+// export const authorizePermission = (...permissions) => {
+//     return ErrorHandler(async (req, res, next) => {
+//         if (!req.user || !req.user.role) {
+//             throw new CustomError("Unauthorized", 401);
+//         }
+
+//         const role = await RoleTable.findOne({
+//             name: req.user.role.toUpperCase()
+//         }).lean();
+
+//         if (!role) {
+//             throw new CustomError("Role not found", 403);
+//         }
+
+//         const hasPermission = permissions.every(permission =>
+//             role.permissions.includes(permission)
+//         );
+
+//         if (!hasPermission) {
+//             throw new CustomError("Permission denied", 403);
+//         }
+
+//         next();
+//     });
+// };

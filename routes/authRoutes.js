@@ -3,17 +3,17 @@ import * as authAdminController from "../controllers/authAdminController.js"
 import { AuthTokenMiddleware } from "../middleware/AuthMiddleware.js";
 import { validateRequest } from "../validators/authValidator.js";
 import { registerValidator, removeUserValidator, updateUserValidator } from "../validators/adminValidator.js";
-import { authorizePermission } from "../middleware/permissionMiddleware.js";
+import { checkPermission } from "../middleware/permissionMiddleware.js";
 import ErrorHandler from "../utils/ErrorHandler.js";
 
 const router = express.Router();
 
-router.get("/users", AuthTokenMiddleware, authorizePermission("user:manage"), ErrorHandler(authAdminController.getAllUsers));
+router.get("/users", AuthTokenMiddleware, checkPermission, ErrorHandler(authAdminController.getAllUsers));
 
-router.delete("/users/:id", AuthTokenMiddleware, authorizePermission("user:manage"), removeUserValidator,
+router.delete("/users/:id", AuthTokenMiddleware, checkPermission, removeUserValidator,
     validateRequest, ErrorHandler(authAdminController.removeUser));
 
-router.put("/users/:id", AuthTokenMiddleware, authorizePermission("user:manage"), updateUserValidator,
+router.put("/users/:id", AuthTokenMiddleware, checkPermission, updateUserValidator,
     validateRequest, ErrorHandler(authAdminController.updateUser));
 
 
