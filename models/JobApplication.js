@@ -11,12 +11,12 @@ const JobApplication = mongoose.Schema({
             ref : "JobTable",
             required : [true , "Job ID is required"],
         },
-        Status : {
+        status : {
             type:String , 
             enum : ["APPLIED", "SHORTLISTED" , "REJECTED"],
             default : "APPLIED",
         },
-        AppliedAt : {
+        appliedAt : {
             type: Date,
             default : Date.now,
         }

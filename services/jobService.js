@@ -3,8 +3,7 @@ import JobApplicationModel from "../models/JobApplication.js";
 import JobModel from "../models/jobModel.js";
 import UserModal from "../models/UserAuth.js";
 import CustomError from "../utils/CustomError.js"
-import { SuccessResponce } from "../utils/responseHandler.js";
-import { sendMail } from "../utils/sendMail.js";
+
 export const getAllJobsService = async ({ limit, offset }) => {
     const jobs = await JobModel.find()
         .sort({ createdAt: -1, _id: -1 })
@@ -148,7 +147,7 @@ export const getJobApplyCandidateForRecruiterService = async (id, limit, offset)
     return { applicants, totalApplications }
 }
 
-export const ApplyJobByCandidateService = async (jobId, candidateId) => {
+export const applyJobByCandidateService = async (jobId, candidateId) => {
   
     if (!mongoose.isValidObjectId(jobId)) {
         throw new CustomError("Job Id is required", 400)
