@@ -62,13 +62,12 @@ export const ApplyJobByCandidate = async (req, res) => {
     const { id } = req.params;
     const candidateId = req.user.id || req.user._id;
 
-    const { application, emailStatus } = await jobService.ApplyJobByCandidateService(id, candidateId);
+    const { application } = await jobService.applyJobByCandidateService(id, candidateId);
 
     return SuccessResponce(
         res, 201, "Job Applied successfully",
         {
-            application,
-            emailStatus
+            application
         }
     );
 };

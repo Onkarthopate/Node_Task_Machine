@@ -184,19 +184,13 @@ export const applyJobByCandidateService = async (jobId, candidateId) => {
         throw new CustomError("Recruiter not found", 404);
     }
 
-    let application;
+    const application = await JobApplicationModel.create({
+        candidateId,
+        jobId
+    });
 
-    try {
-        application = await JobApplicationModel.create({
-            candidateId,
-            jobId
-        });
-
-    } catch (error) {
-        throw error;
-    }
-
-    const emailTemplate = await Promise.allSettled([
+    // Fire-and-forget: Send emails in the background without blocking the HTTP response
+    Promise.allSettled([
         sendMail({
             to: candidate.email,
             subject: "Job Application Submitted Successfully",
@@ -223,28 +217,25 @@ export const applyJobByCandidateService = async (jobId, candidateId) => {
             <p><strong>Job:</strong> ${jobDetails.title}</p>
             <p><strong>Role:</strong> ${jobDetails.jobRole}</p>
             <p>Please log in to your portal to review the application.</p>
-        `
+            `
         })
-    ]);
-
-    emailTemplate.map((res, index) => {
-        console.log(res);
-
-        if (res.status === "rejected") {
-            console.error(
-                `Application email ${index + 1} failed:`,
-                res.reason
-            );
-        }
-    });
+    ])
+        .then((results) => {
+            results.forEach((res, index) => {
+                const recipient = index === 0 ? "Candidate" : "Recruiter";
+                if (res.status === "rejected") {
+                    console.error(`[Email Error] Failed to send email to ${recipient}:`, res.reason);
+                } else {
+                    console.log(`[Email Success] Email sent successfully to ${recipient}`);
+                }
+            });
+        })
+        .catch((err) => {
+            console.error("[Email Error] Unexpected failure in email background task:", err);
+        });
 
     return {
-        application,
-        emailStatus: {
-            candidate: emailTemplate[0].status,
-            recruiter: emailTemplate[1].status,
-        },
-    }
-
+        application
+    };
 }
 
