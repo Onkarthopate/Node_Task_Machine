@@ -30,7 +30,7 @@ export const checkPermission = ErrorHandler(async (req, res, next) => {
     const rolePermission = await RolePermission.findOne({
         roleId: role._id,
         permissionId: userPermission._id,
-    });
+    }).lean();
 
     if (!rolePermission) {
         throw new CustomError("You don't have permission to access this", 403);

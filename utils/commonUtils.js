@@ -12,13 +12,13 @@ export const genrateJWT = (id, role,sessionId) => {
 const SALT_ROUNDS = 12;
 
 // Hash password
-export const hashPassword = async (password) => {
-    return await bcrypt.hash(password, SALT_ROUNDS);
+export const hashPassword = (password) => {
+    return bcrypt.hash(password, SALT_ROUNDS);
 };
 
 // Compare password
-export const comparePassword = async (plainPassword, hashedPassword) => {
-    return await bcrypt.compare(plainPassword, hashedPassword);
+export const comparePassword = (plainPassword, hashedPassword) => {
+    return bcrypt.compare(plainPassword, hashedPassword);
 };
 
 // Generate 6 digit OTP
@@ -27,11 +27,11 @@ export const generateOTP = () => {
 };
 
 // Hash OTP
-export const hashOTP = async (otp) => {
-    return await bcrypt.hash(otp, 10);
+export const hashOTP = (otp) => {
+    return bcrypt.hash(otp, 10);
 };
 
 // Compare OTP
-export const compareOTP = async (plainOTP, hashedOTP) => {
-    return await bcrypt.compare(plainOTP, hashedOTP);
+export const compareOTP = (plainOTP, hashedOTP) => {
+    return bcrypt.compare(plainOTP, hashedOTP);
 };

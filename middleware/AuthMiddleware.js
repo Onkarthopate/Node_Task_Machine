@@ -21,7 +21,7 @@ export const AuthTokenMiddleware = ErrorHandler(async (req, res, next) => {
         process.env.JWT_SECRET,
     );
 
-    const user = await User.findById(decoded.id);
+    const user = await User.findById(decoded.id).lean();
 
     if (!user) {
         throw new CustomError("User not found", 401);

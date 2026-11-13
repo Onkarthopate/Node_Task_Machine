@@ -16,9 +16,9 @@ export const getTransporter = () => {
     return transporterInstance;
 };
 
-export const sendMail = async ({ to, subject, html }) => {
+export const sendMail = ({ to, subject, html }) => {
     const transporter = getTransporter();
-    return await transporter.sendMail({
+    return transporter.sendMail({
         from: `"Job Portal" <${process.env.EMAIL}>`,
         to,
         subject,
