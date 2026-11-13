@@ -17,7 +17,7 @@ router.put("/users/:id", AuthTokenMiddleware, checkPermission, updateUserValidat
     validateRequest, ErrorHandler(authAdminController.updateUser));
 
 
-router.post("/register-recruiter", AuthTokenMiddleware, authorizePermission("create-recruiter"), registerValidator,
+router.post("/register-recruiter", AuthTokenMiddleware, checkPermission , registerValidator,
     validateRequest, ErrorHandler(authAdminController.registerRecruiter));
 
 // for admin only 

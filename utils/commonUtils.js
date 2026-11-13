@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-
+import crypto from "crypto";
 export const genrateJWT = (id, role,sessionId) => {
     return jwt.sign(
         { id, role ,sessionId},

@@ -41,7 +41,7 @@ const routePermissions = [
     { baseUrl: "/api/auth", path: "/users", method: "GET", name: "user:manage" },
     { baseUrl: "/api/auth", path: "/users/:id", method: "DELETE", name: "user:manage" },
     { baseUrl: "/api/auth", path: "/users/:id", method: "PUT", name: "user:manage" },
-    { baseUrl: "/api/auth", path: "/registerRecruiter", method: "POST", name: "create-recruiter" },
+    { baseUrl: "/api/auth", path: "/register-recruiter", method: "POST", name: "create-recruiter" },
 
     // Job routes (/api/jobs)
     { baseUrl: "/api/jobs", path: "/", method: "GET", name: "job:read" },
