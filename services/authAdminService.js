@@ -3,47 +3,47 @@ import User from "../models/UserAuth.js";
 import { hashPassword } from "../utils/commonUtils.js";
 import CustomError from "../utils/CustomError.js";
 
-export const registerAdminService = async (username, email, password) => {
+// export const registerAdminService = async (username, email, password) => {
+//     const formatEmail = email.trim().toLowerCase();
+
+//     const isExistEmail = await User.findOne({ email: formatEmail }).lean();
+
+//     if (isExistEmail) {
+//         throw new CustomError("Email already exists", 400);
+//     }
+
+//     const adminRole = await RoleTable.findOne({
+//         name: "ADMIN"
+//     });
+
+//     if (!adminRole) {
+//         throw new CustomError("ADMIN role not configured", 500);
+//     }
+
+//     const hashPass = await hashPassword(password);
+
+//     const createUser = await User.create({
+//         username,
+//         email: formatEmail,
+//         password: hashPass,
+//         role: adminRole.name
+//     });
+
+//     return {
+//         id: createUser._id,
+//         username: createUser.username,
+//         email: createUser.email,
+//         role: createUser.role
+//     };
+// };
+
+export const registerRecruiterService = async (username, email, password) => {
     const formatEmail = email.trim().toLowerCase();
 
     const isExistEmail = await User.findOne({ email: formatEmail }).lean();
 
     if (isExistEmail) {
         throw new CustomError("Email already exists", 400);
-    }
-
-    const adminRole = await RoleTable.findOne({
-        name: "ADMIN"
-    });
-
-    if (!adminRole) {
-        throw new CustomError("ADMIN role not configured", 500);
-    }
-
-    const hashPass = await hashPassword(password);
-
-    const createUser = await User.create({
-        username,
-        email: formatEmail,
-        password: hashPass,
-        role: adminRole.name
-    });
-
-    return {
-        id: createUser._id,
-        username: createUser.username,
-        email: createUser.email,
-        role: createUser.role
-    };
-};
-
-export const registerRecruiterService = async (username, email, password) => {
-    const formatEmail = email.trim().toLowerCase();
-
-    const isExistEmail = await User.findOne({ email: formatEmail });
-
-    if (isExistEmail) {
-        throw new CustomError("Email already exists", 409);
     }
 
     const recruiterRole = await RoleTable.findOne({
@@ -81,7 +81,7 @@ export const getAllUsersService = async ({ role, limit, offset }) => {
         .select("-password")
         .sort({ createdAt: -1, _id: -1 })
         .skip(offset)
-        .limit(limit);
+        .limit(limit).lean();
 
     const totalCount = await User.countDocuments({ role });
 
@@ -111,13 +111,14 @@ export const removeUserService = async (id) => {
 export const updateUserService = async (role, id, username, email) => {
 
     const formatEmail = email.trim().toLowerCase();
+    
     const existingEmail = await User.findOne({
         email: formatEmail,
         _id: { $ne: id }
-    });
+    }).lean();
 
     if (existingEmail) {
-        throw new CustomError("Email already exists", 409);
+        throw new CustomError("Email already exists", 400);
     }
 
     const user = await User.findOneAndUpdate(

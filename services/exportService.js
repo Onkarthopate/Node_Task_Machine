@@ -32,7 +32,7 @@ export const candidateAppliedJobService = async (id) => {
 
     const candidateAppliedJob = await JobApplicationModel.find({ candidateId: { $in: candidateIds } })
         .populate("candidateId", "username email")
-        .populate("jobId", "title description jobRole").sort({ createdAt: -1 });
+        .populate("jobId", "title description jobRole").sort({ createdAt: -1 }).lean();
 
     const userData = candidateAppliedJob
         .filter(app => app.candidateId && app.jobId)

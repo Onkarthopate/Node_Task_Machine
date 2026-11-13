@@ -7,10 +7,10 @@ import { getTransporter } from "../utils/sendMail.js";
 export const registerUserService = async (username, email, password) => {
 
     const formatEmail = email.trim().toLowerCase();
-    const isExistEmail = await User.findOne({ email: formatEmail });
+    const isExistEmail = await User.findOne({ email: formatEmail }).lean();
 
     if (isExistEmail) {
-        throw new CustomError("Email already exists", 409);
+        throw new CustomError("Email already exists", 400);
     }
 
     const pass = await hashPassword(password);
@@ -30,7 +30,7 @@ export const registerUserService = async (username, email, password) => {
 export const loginService = async (email, password) => {
     const formatEmail = email.trim().toLowerCase();
 
-    const user = await User.findOne({ email: formatEmail }).select("+password");
+    const user = await User.findOne({ email: formatEmail }).select("+password").lean();
 
     if (!user) {
         throw new CustomError("User with this email not exist", 404);
@@ -42,7 +42,7 @@ export const loginService = async (email, password) => {
         throw new CustomError("Invalid email or password", 401);
     }
 
-    const sessionId = crypto.randomUUID();
+    
     user.activeSessionId = sessionId;
     await user.save();
 
@@ -61,7 +61,7 @@ export const loginService = async (email, password) => {
 export const forgetPasswordService = async (email) => {
     const formatEmail = email.trim().toLowerCase();
 
-    const user = await User.findOne({ email: formatEmail });
+    const user = await User.findOne({ email: formatEmail }).lean();
 
     if (!user) {
         throw new CustomError("Invalid User", 400);
@@ -133,7 +133,7 @@ export const resetPasswordService = async (
 
     const otpData = await otpModal.findOne({
         email: formatEmail
-    });
+    }).lean();
 
     if (!otpData) {
         throw new CustomError(
