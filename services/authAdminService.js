@@ -6,10 +6,10 @@ import CustomError from "../utils/CustomError.js";
 export const registerAdminService = async (username, email, password) => {
     const formatEmail = email.trim().toLowerCase();
 
-    const isExistEmail = await User.findOne({ email: formatEmail });
+    const isExistEmail = await User.findOne({ email: formatEmail }).lean();
 
     if (isExistEmail) {
-        throw new CustomError("Email already exists", 409);
+        throw new CustomError("Email already exists", 400);
     }
 
     const adminRole = await RoleTable.findOne({
@@ -20,12 +20,12 @@ export const registerAdminService = async (username, email, password) => {
         throw new CustomError("ADMIN role not configured", 500);
     }
 
-    const hashPassword = await hashPassword(password);
+    const hashPass = await hashPassword(password);
 
     const createUser = await User.create({
         username,
         email: formatEmail,
-        password: hashPassword,
+        password: hashPass,
         role: adminRole.name
     });
 

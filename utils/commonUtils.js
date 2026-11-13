@@ -9,7 +9,7 @@ export const genrateJWT = (id, role,sessionId) => {
     )
 }
 
-const SALT_ROUNDS = 10;
+const SALT_ROUNDS = 12;
 
 // Hash password
 export const hashPassword = async (password) => {
