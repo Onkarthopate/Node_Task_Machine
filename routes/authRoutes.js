@@ -17,11 +17,11 @@ router.put("/users/:id", AuthTokenMiddleware, authorizePermission("user:manage")
     validateRequest, ErrorHandler(authAdminController.updateUser));
 
 
-router.post("/registerRecruiter", AuthTokenMiddleware, authorizePermission("create-recruiter"), registerValidator,
+router.post("/register-recruiter", AuthTokenMiddleware, authorizePermission("create-recruiter"), registerValidator,
     validateRequest, ErrorHandler(authAdminController.registerRecruiter));
 
 // for admin only 
-router.post("/registerAdmin", registerValidator,
-    validateRequest, ErrorHandler(authAdminController.registerAdmin));
+// router.post("/register-admin", registerValidator,
+//     validateRequest, ErrorHandler(authAdminController.registerAdmin));
 
 export default router;

@@ -9,12 +9,12 @@ const router = express.Router();
 
 // public routes 
 
-router.post("/registerCandidate", registerValidator, validateRequest, ErrorHandler(authController.registerUser));
+router.post("/register-candidate", registerValidator, validateRequest, ErrorHandler(authController.registerUser));
 
 router.post("/login", loginValidator, validateRequest, ErrorHandler(authController.loginUser));
 
-router.post("/forgetPassword", emailValidation, validateRequest, ErrorHandler(authController.forgetPassword));
+router.post("/forget-password", emailValidation, validateRequest, ErrorHandler(authController.forgetPassword));
 
-router.post("/resetPassword", resetPasswordValidator, validateRequest, ErrorHandler(authController.resetPassword));
+router.post("/reset-password", resetPasswordValidator, validateRequest, ErrorHandler(authController.resetPassword));
 
 export default router;
