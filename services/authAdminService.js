@@ -1,6 +1,5 @@
 import RoleTable from "../models/roleModel.js";
 import User from "../models/UserAuth.js";
-import { hashPassword } from "../utils/commonUtils.js";
 import CustomError from "../utils/CustomError.js";
 
 // export const registerAdminService = async (username, email, password) => {
@@ -54,12 +53,10 @@ export const registerRecruiterService = async (username, email, password) => {
         throw new CustomError("RECRUITER role not configured", 500);
     }
 
-    const hashPassword = await hashPassword(password);
-
     const createUser = await User.create({
         username,
         email: formatEmail,
-        password: hashPassword,
+        password,
         role: recruiterRole.name,
     });
 

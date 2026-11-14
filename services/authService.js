@@ -2,7 +2,7 @@ import crypto from "crypto";
 import CustomError from "../utils/CustomError.js";
 import User from "../models/UserAuth.js";
 import otpModal from "../models/otpValidate.js";
-import { compareOTP, comparePassword, generateOTP, genrateJWT, hashOTP, hashPassword, } from "../utils/commonUtils.js";
+import { compareOTP, comparePassword, generateOTP, genrateJWT, hashOTP, } from "../utils/commonUtils.js";
 import { getTransporter } from "../utils/sendMail.js";
 
 export const registerUserService = async (username, email, password) => {
@@ -14,12 +14,10 @@ export const registerUserService = async (username, email, password) => {
         throw new CustomError("Email already exists", 400);
     }
 
-    const pass = await hashPassword(password);
-
     const createUser = await User.create({
         username,
         email: formatEmail,
-        password: pass,
+        password,
     });
 
     const userResponse = createUser.toObject();
@@ -162,9 +160,7 @@ export const resetPasswordService = async (
         );
     }
 
-    const hashedPassword = await hashPassword(newPass);
-
-    user.password = hashedPassword;
+    user.password = newPass;
 
     await user.save();
 
