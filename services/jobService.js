@@ -2,7 +2,9 @@ import mongoose from "mongoose";
 import JobApplicationModel from "../models/JobApplication.js";
 import JobModel from "../models/jobModel.js";
 import UserModal from "../models/UserAuth.js";
-import CustomError from "../utils/CustomError.js"
+import CustomError from "../utils/CustomError.js";
+import { jobEmitter } from "../utils/jobEvents.js";
+import { sendMail } from "../utils/sendMail.js";
 
 export const getAllJobsService = async ({ limit, offset }) => {
     const jobs = await JobModel.find()
@@ -47,13 +49,12 @@ export const postJobsByRecruiterService = async ({ id, title, description, jobRo
 }
 
 export const deleteJobByAdminOnlyService = async (id) => {
+    const removeJob = await JobModel.findByIdAndDelete(id);
 
-    const jobId = await JobModel.findById({ _id: id }).lean();
-
-    if (!jobId) {
+    if (!removeJob) {
         throw new CustomError("Job not found", 404);
     }
-    const removeJob = await JobModel.findByIdAndDelete(jobId);
+
     return removeJob;
 }
 
@@ -97,10 +98,7 @@ export const getJobsByCandidateService = async (id, limit, offset) => {
     const JobIds = [...new Set(candidateAppliedJob.filter(application => application.jobId)
         .map(application => application.jobId.toString()))];
 
-    console.log(JobIds);
-
-
-    const totalJobs = await JobModel.countDocuments({ _id: { $in: JobIds } })
+    const totalJobs = await JobModel.countDocuments({ _id: { $in: JobIds } });
 
     if (JobIds.length === 0) {
         return {
@@ -113,10 +111,7 @@ export const getJobsByCandidateService = async (id, limit, offset) => {
         _id: { $in: JobIds }
     }).sort({ createdAt: -1 }).skip(offset).limit(limit).lean();
 
-    console.log(jobs);
-
-
-    return { jobs, totalJobs }
+    return { jobs, totalJobs };
 }
 
 export const getJobApplyCandidateForRecruiterService = async (id, limit, offset) => {
@@ -189,50 +184,12 @@ export const applyJobByCandidateService = async (jobId, candidateId) => {
         jobId
     });
 
-    // Fire-and-forget: Send emails in the background without blocking the HTTP response
-    Promise.allSettled([
-        sendMail({
-            to: candidate.email,
-            subject: "Job Application Submitted Successfully",
-            html: `
-            <h2>Application Submitted Successfully!</h2>
-            <p>Hello ${candidate.username},</p>
-            <p>Your application has been submitted successfully.</p>
-            <p><strong>Job:</strong> ${jobDetails.title}</p>
-            <p><strong>Role:</strong> ${jobDetails.jobRole}</p>
-            <p><strong>Status:</strong> APPLIED</p>
-            <p>Best of luck with your application!</p>
-            `
-        }),
-
-        sendMail({
-            to: recruiter.email,
-            subject: "New Job Application Received",
-            html: `
-            <h2>New Job Application</h2>
-            <p>Hello ${recruiter.username},</p>
-            <p>A candidate has applied for your job posting.</p>
-            <p><strong>Candidate:</strong> ${candidate.username}</p>
-            <p><strong>Email:</strong> ${candidate.email}</p>
-            <p><strong>Job:</strong> ${jobDetails.title}</p>
-            <p><strong>Role:</strong> ${jobDetails.jobRole}</p>
-            <p>Please log in to your portal to review the application.</p>
-            `
-        })
-    ])
-        .then((results) => {
-            results.forEach((res, index) => {
-                const recipient = index === 0 ? "Candidate" : "Recruiter";
-                if (res.status === "rejected") {
-                    console.error(`[Email Error] Failed to send email to ${recipient}:`, res.reason);
-                } else {
-                    console.log(`[Email Success] Email sent successfully to ${recipient}`);
-                }
-            });
-        })
-        .catch((err) => {
-            console.error("[Email Error] Unexpected failure in email background task:", err);
-        });
+    // Asynchronously dispatch email notification via EventEmitter (non-blocking)
+    jobEmitter.emit("job:applied", {
+        candidate,
+        recruiter,
+        jobDetails
+    });
 
     return {
         application

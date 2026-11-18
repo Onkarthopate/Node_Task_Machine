@@ -1,7 +1,7 @@
 import express from "express";
 import * as jobControllers from "../controllers/jobControllers.js";
 import { AuthTokenMiddleware } from "../middleware/AuthMiddleware.js";
-import { createJobValidator, removeUserValidator } from "../validators/adminValidator.js";
+import { createJobValidator } from "../validators/adminValidator.js";
 import { validateRequest } from "../validators/authValidator.js";
 import { paramIdValidator, queryIdValidator } from "../validators/commonValidator.js";
 import { checkPermission } from "../middleware/permissionMiddleware.js";
@@ -13,7 +13,7 @@ router.get("/", AuthTokenMiddleware, checkPermission, ErrorHandler(jobController
 
 router.get("/recruiter", AuthTokenMiddleware, checkPermission, ErrorHandler(jobControllers.getAllJobsBySpecificRecruiter));
 
-router.delete("/:id", AuthTokenMiddleware, checkPermission, removeUserValidator, validateRequest, ErrorHandler(jobControllers.deleteJobByAdminOnly));
+router.delete("/:id", AuthTokenMiddleware, checkPermission, paramIdValidator, validateRequest, ErrorHandler(jobControllers.deleteJobByAdminOnly));
 
 router.post("/", AuthTokenMiddleware, checkPermission, createJobValidator, validateRequest, ErrorHandler(jobControllers.postJobsByRecruiter));
 

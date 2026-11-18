@@ -24,5 +24,7 @@ const JobData = mongoose.Schema({
 }
 )
 
+JobData.index({ candidateId: 1, jobId: 1 }, { unique: true });
+
 const JobModel = mongoose.model("JobTable", JobData);
 export default JobModel;

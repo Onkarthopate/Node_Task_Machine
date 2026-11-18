@@ -2,39 +2,37 @@ import RoleTable from "../models/roleModel.js";
 import User from "../models/UserAuth.js";
 import CustomError from "../utils/CustomError.js";
 
-// export const registerAdminService = async (username, email, password) => {
-//     const formatEmail = email.trim().toLowerCase();
+export const registerAdminService = async (username, email, password) => {
+    const formatEmail = email.trim().toLowerCase();
 
-//     const isExistEmail = await User.findOne({ email: formatEmail }).lean();
+    const isExistEmail = await User.findOne({ email: formatEmail }).lean();
 
-//     if (isExistEmail) {
-//         throw new CustomError("Email already exists", 400);
-//     }
+    if (isExistEmail) {
+        throw new CustomError("Email already exists", 400);
+    }
 
-//     const adminRole = await RoleTable.findOne({
-//         name: "ADMIN"
-//     });
+    const adminRole = await RoleTable.findOne({
+        name: "ADMIN"
+    });
 
-//     if (!adminRole) {
-//         throw new CustomError("ADMIN role not configured", 500);
-//     }
+    if (!adminRole) {
+        throw new CustomError("ADMIN role not configured", 500);
+    }
 
-//     const hashPass = await hashPassword(password);
+    const createUser = await User.create({
+        username,
+        email: formatEmail,
+        password,
+        role: adminRole.name
+    });
 
-//     const createUser = await User.create({
-//         username,
-//         email: formatEmail,
-//         password: hashPass,
-//         role: adminRole.name
-//     });
-
-//     return {
-//         id: createUser._id,
-//         username: createUser.username,
-//         email: createUser.email,
-//         role: createUser.role
-//     };
-// };
+    return {
+        id: createUser._id,
+        username: createUser.username,
+        email: createUser.email,
+        role: createUser.role
+    };
+};
 
 export const registerRecruiterService = async (username, email, password) => {
     const formatEmail = email.trim().toLowerCase();
@@ -95,7 +93,6 @@ export const removeUserService = async (id) => {
     }
 
     const removeUser = await User.findByIdAndDelete(id);
-    console.log(removeUser);
 
     if (!removeUser) {
         throw new CustomError("User not found", 404);

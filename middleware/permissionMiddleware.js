@@ -9,30 +9,32 @@ export const checkPermission = ErrorHandler(async (req, res, next) => {
         throw new CustomError("Unauthorized", 401);
     }
 
-    const role = await RoleTable.findOne({
-        name: req.user.role.toUpperCase(),
-    }).lean();
+    const [role, userPermission] = await Promise.all([
+        RoleTable.findOne({
+            name: req.user.role.toUpperCase(),
+        }).lean(),
+        Permission.findOne({
+            baseUrl: req.baseUrl,
+            path: req.route?.path,
+            method: req.method.toUpperCase(),
+        }).lean()
+    ]);
 
     if (!role) {
         throw new CustomError("Role not found", 403);
     }
 
-    const userPermission = await Permission.findOne({
-        baseUrl: req.baseUrl,
-        path: req.route?.path,
-        method: req.method.toUpperCase(),
-    }).lean();
-
     if (!userPermission) {
         throw new CustomError("Permission not found", 403);
     }
 
-    const rolePermission = await RolePermission.findOne({
-        roleId: role._id,
-        permissionId: userPermission._id,
-    }).lean();
+    const hasPermission = role.permissions?.includes(userPermission.name) ||
+        Boolean(await RolePermission.exists({
+            roleId: role._id,
+            permissionId: userPermission._id,
+        }));
 
-    if (!rolePermission) {
+    if (!hasPermission) {
         throw new CustomError("You don't have permission to access this", 403);
     }
 

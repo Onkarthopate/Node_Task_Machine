@@ -1,7 +1,7 @@
-import mongooose from "mongoose";
+import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 
-const UserAuthModel = mongooose.Schema({
+const UserAuthModel = mongoose.Schema({
     username: {
         type: String,
         required: [true, "username is required"],
@@ -10,7 +10,6 @@ const UserAuthModel = mongooose.Schema({
     email: {
         type: String,
         required: [true, "email is required"],
-        minlength: 11,
         match: [
             /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
             "Please enter a valid email address"
@@ -44,5 +43,5 @@ UserAuthModel.pre("save", async function () {
     this.password = await bcrypt.hash(this.password, 12);
 });
 
-const User = mongooose.model("UserTable", UserAuthModel);
+const User = mongoose.model("UserTable", UserAuthModel);
 export default User;

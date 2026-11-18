@@ -24,7 +24,9 @@ const JobApplication = mongoose.Schema({
     {
         timestamps : true,
     },
-)
+);
+
+JobApplication.index({ candidateId: 1, jobId: 1 }, { unique: true });
 
 const JobApplicationModel = mongoose.model("JobApplicationTable",JobApplication);
 export default JobApplicationModel;

@@ -161,6 +161,7 @@ export const resetPasswordService = async (
     }
 
     user.password = newPass;
+    user.activeSessionId = null;
 
     await user.save();
 
@@ -170,3 +171,4 @@ export const resetPasswordService = async (
 
     return true;
 };
+    

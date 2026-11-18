@@ -105,7 +105,7 @@ export const getJobsByCandidate = async (req, res) => {
 };
 
 export const getJobApplyCandidateForRecruiter = async (req, res) => {
-    const id = req.user.id;
+    const id = req.user.id || req.user._id;
 
     const { limit, offset } = getPagination(req.query);
 

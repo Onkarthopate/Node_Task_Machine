@@ -1,13 +1,14 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
-export const genrateJWT = (id, role,sessionId) => {
+export const generateJWT = (id, role, sessionId) => {
     return jwt.sign(
-        { id, role ,sessionId},
+        { id, role, sessionId },
         process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRY_TIME }
-    )
-}
+        { expiresIn: process.env.JWT_EXPIRY_TIME || "10m" }
+    );
+};
+export const genrateJWT = generateJWT;
 
 const SALT_ROUNDS = 12;
 
