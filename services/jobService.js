@@ -36,7 +36,7 @@ export const postJobsByRecruiterService = async ({ id, title, description, jobRo
     const jobData = await JobModel.findOne({ title: title.trim() }).lean();
 
     if (jobData) {
-        throw new CustomError("Job Title already exist", 409)
+        throw new CustomError("Job Title already exist", 400)
     }
 
     const JobDeatils = await JobModel.create({
