@@ -1,4 +1,5 @@
 import { body, param, query } from "express-validator";
+import { MANAGEABLE_ROLES } from "../constants/roles.js";
 import mongoose from "mongoose";
 
 export const usernameValidator = body("username")
@@ -31,7 +32,7 @@ export const roleValidator =
         .notEmpty()
         .withMessage("Role is required")
         .bail()
-        .isIn(["CANDIDATE", "RECRUITER"])
+        .isIn(MANAGEABLE_ROLES)
         .withMessage("Invalid role");
 
 

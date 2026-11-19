@@ -18,7 +18,9 @@ export const checkPermission = ErrorHandler(async (req, res, next) => {
             path: req.route?.path,
             method: req.method.toUpperCase(),
         }).lean()
-    ]);
+    ]).catch((error => {
+        console.log(error);
+    }));
 
     if (!role) {
         throw new CustomError("Role not found", 403);

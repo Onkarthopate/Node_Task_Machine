@@ -1,29 +1,29 @@
 import RoleTable from "../models/roleModel.js";
 import User from "../models/UserAuth.js";
 import CustomError from "../utils/CustomError.js";
+import { ROLES, MANAGEABLE_ROLES } from "../constants/roles.js";
 
-export const registerAdminService = async (username, email, password) => {
+// Shared logic for creating a user with a server-decided role.
+// The role is NEVER taken from the request body — each endpoint fixes its own role.
+const createUserWithRole = async (roleName, username, email, password) => {
     const formatEmail = email.trim().toLowerCase();
 
     const isExistEmail = await User.findOne({ email: formatEmail }).lean();
 
     if (isExistEmail) {
-        throw new CustomError("Email already exists", 400);
     }
 
-    const adminRole = await RoleTable.findOne({
-        name: "ADMIN"
-    });
+    const role = await RoleTable.findOne({ name: roleName }).lean();
 
-    if (!adminRole) {
-        throw new CustomError("ADMIN role not configured", 500);
+    if (!role) {
+        throw new CustomError(`${roleName} role not configured`, 500);
     }
 
     const createUser = await User.create({
         username,
         email: formatEmail,
         password,
-        role: adminRole.name
+        role: role.name
     });
 
     return {
@@ -34,41 +34,15 @@ export const registerAdminService = async (username, email, password) => {
     };
 };
 
-export const registerRecruiterService = async (username, email, password) => {
-    const formatEmail = email.trim().toLowerCase();
+export const registerAdminService = (username, email, password) =>
+    createUserWithRole(ROLES.ADMIN, username, email, password);
 
-    const isExistEmail = await User.findOne({ email: formatEmail }).lean();
-
-    if (isExistEmail) {
-        throw new CustomError("Email already exists", 400);
-    }
-
-    const recruiterRole = await RoleTable.findOne({
-        name: "RECRUITER"
-    });
-
-    if (!recruiterRole) {
-        throw new CustomError("RECRUITER role not configured", 500);
-    }
-
-    const createUser = await User.create({
-        username,
-        email: formatEmail,
-        password,
-        role: recruiterRole.name,
-    });
-
-    return {
-        id: createUser._id,
-        username: createUser.username,
-        email: createUser.email,
-        role: createUser.role
-    };
-};
+export const registerRecruiterService = (username, email, password) =>
+    createUserWithRole(ROLES.RECRUITER, username, email, password);
 
 export const getAllUsersService = async ({ role, limit, offset }) => {
 
-    if (!["CANDIDATE", "RECRUITER"].includes(role)) {
+    if (!MANAGEABLE_ROLES.includes(role)) {
         throw new CustomError("Invalid role", 400);
     }
 

@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
+import { ROLES, ALL_ROLES } from "../constants/roles.js";
 
 const UserAuthModel = mongoose.Schema({
     username: {
@@ -10,6 +11,9 @@ const UserAuthModel = mongoose.Schema({
     email: {
         type: String,
         required: [true, "email is required"],
+        unique: true,
+        lowercase: true,
+        trim: true,
         match: [
             /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
             "Please enter a valid email address"
@@ -23,10 +27,13 @@ const UserAuthModel = mongoose.Schema({
     },
     role: {
         type: String,
-        //enum: ["CANDIDATE", "RECRUITER", "ADMIN"],
+        enum: {
+            values: ALL_ROLES,
+            message: "{VALUE} is not a valid role"
+        },
         required: true,
         uppercase: true,
-        default: "CANDIDATE",
+        default: ROLES.CANDIDATE,
         trim: true,
     },
     activeSessionId: {

@@ -1,10 +1,11 @@
 import RoleTable from "../models/roleModel.js";
 import Permission from "../models/permissionModel.js";
 import RolePermission from "../models/rolePermissionModel.js";
+import { ROLES } from "../constants/roles.js";
 
 const roles = [
     {
-        name: "ADMIN",
+        name: ROLES.ADMIN,
         permissions: [
             "job:create",
             "job:read",
@@ -18,7 +19,7 @@ const roles = [
         ]
     },
     {
-        name: "RECRUITER",
+        name: ROLES.RECRUITER,
         permissions: [
             "job:create",
             "my-created-job:read",
@@ -27,7 +28,7 @@ const roles = [
         ]
     },
     {
-        name: "CANDIDATE",
+        name: ROLES.CANDIDATE,
         permissions: [
             "job:read",
             "application:create",
@@ -68,7 +69,9 @@ export const seedRoles = async () => {
                 { upsert: true, new: true }
             )
         )
-    );
+    ).catch((error) => {
+        console.log(error);
+    });
 
     const permissionDocs = await Promise.all(
         routePermissions.map((perm) =>
@@ -78,7 +81,9 @@ export const seedRoles = async () => {
                 { upsert: true, new: true }
             )
         )
-    );
+    ).catch((error)=>{
+        console.log(error);
+    });
 
     const roleMap = new Map(roleDocs.map((r) => [r.name, r]));
 

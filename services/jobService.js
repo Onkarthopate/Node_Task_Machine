@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import JobApplicationModel from "../models/JobApplication.js";
 import JobModel from "../models/jobModel.js";
 import UserModal from "../models/UserAuth.js";
+import { ROLES } from "../constants/roles.js";
 import CustomError from "../utils/CustomError.js";
 import { jobEmitter } from "../utils/jobEvents.js";
 import { sendMail } from "../utils/sendMail.js";
@@ -163,7 +164,7 @@ export const applyJobByCandidateService = async (jobId, candidateId) => {
 
     const candidate = await UserModal.findOne({
         _id: candidateId,
-        role: "CANDIDATE"
+        role: ROLES.CANDIDATE
     }).lean();
 
     if (!candidate) {
@@ -172,7 +173,7 @@ export const applyJobByCandidateService = async (jobId, candidateId) => {
 
     const recruiter = await UserModal.findOne({
         _id: jobDetails.recruiterId,
-        role: "RECRUITER"
+        role: ROLES.RECRUITER
     }).lean();
 
     if (!recruiter) {
